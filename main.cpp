@@ -7,6 +7,7 @@
 #define _XM_NO_INTRINSICS_
 #define XM_NO_ALIGNMENT
 #include <xnamath.h>
+#include "Camera.h"
 
 //////////////////////////////////////////////////////////////////////////////////////
 //	Global Variables
@@ -15,7 +16,7 @@ HINSTANCE	g_hInst = NULL;
 HWND		g_hWnd = NULL;
 
 // Rename for each tutorial – This will appear in the title bar of the window
-char		g_TutorialName[100] = "Ethan Bruins - Assignment 2\0";
+char		g_TutorialName[100] = "EB Tutorial 07 Exercise 01\0";
 
 D3D_DRIVER_TYPE         g_driverType = D3D_DRIVER_TYPE_NULL;
 D3D_FEATURE_LEVEL       g_featureLevel = D3D_FEATURE_LEVEL_11_0;
@@ -30,6 +31,9 @@ ID3D11PixelShader*		g_pPixelShader;
 ID3D11InputLayout*		g_pInputLayout;
 ID3D11Buffer*			g_pConstantBuffer0; //Tutorial 04-01
 ID3D11Buffer*			g_pConstantBufferWVP; //Tutorial 05-01
+ID3D11DepthStencilView* g_pZBuffer; //Tutorial 06-01b
+Camera*					g_cam;
+POINT					g_mousePos;
 
 
 //Define vertex structure
@@ -113,7 +117,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 		else
 		{
+			
 			// do something
+			g_cam->Update();
 			RenderFrame();
 		}
 	}
@@ -226,29 +232,58 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			cb0_values.RedAmount += 0.1f;
 		//G key
 		if (wParam == 0x47)
-			cb0_values.GreenAmount += 0.1f;
+			g_cam->RotateCamera(-1.0f, 0.0f);
 		//B key
 		if (wParam == 0x42)
-			cb0_values.BlueAmount += 0.1f;
-		//A key
-		if (wParam == 0x41)
-			cb0_values.degrees += 0.1f;
+			g_cam->RotateCamera(1.0f,0.0f);
 		//C key
 		if (wParam == 0x43)
 			cb0_values.degrees -= 0.1f;
-		//Up Arrow
+		//E Key
+		if (wParam == 0x45)
+			g_cam->Up(-1);
+		//Q Key
+		if (wParam == 0x51)
+			g_cam->Up(1);
+		//W Key
+		if (wParam == 0x57)
+			g_cam->Forward(1.0f);
+		//S Key
+		if (wParam == 0x53)
+			g_cam->Forward(-1.0f);
+		//D Key
+		if (wParam == 0x44)
+			g_cam->Strafe(-1.0f);
+		//A Key
+		if (wParam == 0x41)
+			g_cam->Strafe(1.0f);
 		if (wParam == VK_UP)
-			cbWVP_values.vertical += 0.01f;
-		//Down Arrow
+			g_cam->RotateCamera(0.0f, -1.0f);
 		if (wParam == VK_DOWN)
-			cbWVP_values.vertical -= 0.01f;
-		//Right Arrow
-		if (wParam == VK_RIGHT)
-			cbWVP_values.horizontal += 0.01f;
-		//Left Arrow
+			g_cam->RotateCamera(0.0f, 1.0f);
 		if (wParam == VK_LEFT)
-			cbWVP_values.horizontal -= 0.01f;
+			g_cam->RotateCamera(-1.0f, 0.0f);
+		if (wParam == VK_RIGHT)
+			g_cam->RotateCamera(1.0f, 0.0f);
+		//1 Key
+		if (wParam == 0x31)
+			g_cam->ChangeCameraType(CameraType::FirstPerson);
+		//2 Key
+		if (wParam == 0x32)
+			g_cam->ChangeCameraType(CameraType::FreeLook);
+		return 0;
 
+	case WM_LBUTTONDOWN:
+		g_mousePos.x = LOWORD(lParam);
+		g_mousePos.y = HIWORD(lParam);
+		if (g_mousePos.x < cbWVP_values.width / 2 && g_mousePos.y < cbWVP_values.height / 2)
+			g_cam->RotateCamera(-1.0f, -1.0f);
+		else if (g_mousePos.x > cbWVP_values.width / 2 && g_mousePos.y < cbWVP_values.height / 2)
+			g_cam->RotateCamera(1.0f, -1.0f);
+		else if (g_mousePos.x > cbWVP_values.width / 2 && g_mousePos.y > cbWVP_values.height / 2)
+			g_cam->RotateCamera(1.0f, 1.0f);
+		else if (g_mousePos.x < cbWVP_values.width / 2 && g_mousePos.y > cbWVP_values.height / 2)
+			g_cam->RotateCamera(-1.0f, 1.0f);
 		return 0;
 
 	default:
@@ -335,8 +370,37 @@ HRESULT InitialiseD3D()
 	if (FAILED(hr))
 		return hr;
 
+	//Create Z Buffer texture
+	D3D11_TEXTURE2D_DESC tex2dDesc;
+	ZeroMemory(&tex2dDesc, sizeof(tex2dDesc));
+
+	tex2dDesc.Width = width;
+	tex2dDesc.Height = height;
+	tex2dDesc.ArraySize = 1;
+	tex2dDesc.MipLevels = 1;
+	tex2dDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	tex2dDesc.SampleDesc.Count = sd.SampleDesc.Count;
+	tex2dDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	tex2dDesc.Usage = D3D11_USAGE_DEFAULT;
+
+	ID3D11Texture2D* pZBufferTexture;
+	hr = g_pD3DDevice->CreateTexture2D(&tex2dDesc, NULL, &pZBufferTexture);
+	if (FAILED(hr))
+		return hr;
+
+	//Create the Z Buffer;
+	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+	ZeroMemory(&dsvDesc, sizeof(dsvDesc));
+
+	dsvDesc.Format = tex2dDesc.Format;
+	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+
+	g_pD3DDevice->CreateDepthStencilView(pZBufferTexture, &dsvDesc, &g_pZBuffer);
+	pZBufferTexture->Release();
+
+
 	//Set the render target view
-	g_pImmediateContext->OMSetRenderTargets(1, &g_pBackBufferRTView, NULL);
+	g_pImmediateContext->OMSetRenderTargets(1, &g_pBackBufferRTView, g_pZBuffer);
 
 	//Set the viewport
 	D3D11_VIEWPORT viewport;
@@ -358,6 +422,8 @@ HRESULT InitialiseD3D()
 //////////////////////////////////////////////////////////////////////////////////////
 void ShutdownD3D()
 {
+	if (g_cam) g_cam = nullptr;
+	if (g_pZBuffer) g_pZBuffer->Release(); //06-01b
 	if (g_pConstantBuffer0) g_pConstantBuffer0->Release(); //04-01
 	if (g_pVertexBuffer) g_pVertexBuffer->Release(); //03-01
 	if (g_pInputLayout) g_pInputLayout->Release(); //03-01
@@ -550,6 +616,8 @@ HRESULT InitialiseGraphics()
 
 	g_pImmediateContext->IASetInputLayout(g_pInputLayout);
 
+	g_cam = new Camera(0.0, 0.0, -0.5, 0.0);
+
 	return S_OK;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -560,18 +628,20 @@ void RenderFrame(void)
 	// Clear the back buffer - choose a colour you like
 	float rgba_clear_colour[4] = { 0.1f, 0.1f, 0.1f, 1.0f };
 	g_pImmediateContext->ClearRenderTargetView(g_pBackBufferRTView, rgba_clear_colour);
+	g_pImmediateContext->ClearDepthStencilView(g_pZBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	//Render Here
 	XMMATRIX projection, world, view, world1;
-
+	
 	//world = XMMatrixTranslation(cbWVP_values.horizontal, cbWVP_values.vertical, cb0_values.AlphaAmount);
-	world = XMMatrixRotationZ(XMConvertToRadians(15.0f)); // 06-01
+	//world = XMMatrixRotationZ(XMConvertToRadians(15.0f)); // 06-01
+
 	world = XMMatrixRotationRollPitchYaw(0.0f, 1.0f, 10.0f + cb0_values.degrees);
 
 	world *= XMMatrixTranslation(0, 0, 5); // 05-03
 
 	projection = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0), cbWVP_values.width / cbWVP_values.height, 1.0, 100.0);
-	view = XMMatrixIdentity();
+	view = g_cam->GetViewMatrix();
 	cbWVP_values.WorldViewProjection = world * view * projection;
 
 	//Upload new values to buffer
@@ -582,6 +652,43 @@ void RenderFrame(void)
 	g_pImmediateContext->VSSetConstantBuffers(0, 1, &g_pConstantBuffer0);
 	g_pImmediateContext->VSSetConstantBuffers(1, 1, &g_pConstantBufferWVP);
 
+	g_pImmediateContext->Draw(36, 0);
+
+	//Start of second cube
+	world1 = XMMatrixRotationRollPitchYaw(0.0f, 10.0f + cb0_values.degrees, 1.0f);
+	world1 *= XMMatrixTranslation(0, 0, 5 + cb0_values.degrees); // 05-03
+
+	cbWVP_values.WorldViewProjection = world1 * view * projection;
+
+	//Upload new values to buffer
+	g_pImmediateContext->UpdateSubresource(g_pConstantBuffer0, 0, 0, &cb0_values, 0, 0);
+	g_pImmediateContext->UpdateSubresource(g_pConstantBufferWVP, 0, 0, &cbWVP_values, 0, 0);
+
+	//Set the constant buffer active
+	g_pImmediateContext->VSSetConstantBuffers(0, 1, &g_pConstantBuffer0);
+	g_pImmediateContext->VSSetConstantBuffers(1, 1, &g_pConstantBufferWVP);
+
+	//Draw the vertex buffer to the back buffer 06-01 (now a cube)
+	g_pImmediateContext->Draw(36, 0);
+
+	//End of second cube
+
+	//Start of third cube
+	world1 = XMMatrixRotationRollPitchYaw(0.0f + cb0_values.degrees, 0.0f, 1.0f);
+	world1 *= XMMatrixTranslation(5, 0, 5);
+
+	cbWVP_values.WorldViewProjection = world1 * view * projection;
+
+	//Upload new values to buffer
+	g_pImmediateContext->UpdateSubresource(g_pConstantBuffer0, 0, 0, &cb0_values, 0, 0);
+	g_pImmediateContext->UpdateSubresource(g_pConstantBufferWVP, 0, 0, &cbWVP_values, 0, 0);
+
+	//Set the constant buffer active
+	g_pImmediateContext->VSSetConstantBuffers(0, 1, &g_pConstantBuffer0);
+	g_pImmediateContext->VSSetConstantBuffers(1, 1, &g_pConstantBufferWVP);
+
+	//Draw the vertex buffer to the back buffer 06-01 (now a cube)
+	g_pImmediateContext->Draw(36, 0);
 	//Set vertex buffer 03-01
 	UINT stride = sizeof(POS_COL_VERTEX);
 	UINT offset = 0;
@@ -589,9 +696,6 @@ void RenderFrame(void)
 
 	//Select primitive type to use 03-01
 	g_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	//Draw the vertex buffer to the back buffer 06-01 (now a cube)
-	g_pImmediateContext->Draw(36, 0);
 
 
 	//Display what has just been rendered
