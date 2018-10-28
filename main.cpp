@@ -253,10 +253,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			g_cam->Forward(-1.0f);
 		//D Key
 		if (wParam == 0x44)
-			g_cam->Strafe(-1.0f);
+			g_cam->Strafe(1.0f);
 		//A Key
 		if (wParam == 0x41)
-			g_cam->Strafe(1.0f);
+			g_cam->Strafe(-1.0f);
 		if (wParam == VK_UP)
 			g_cam->RotateCamera(0.0f, -1.0f);
 		if (wParam == VK_DOWN)

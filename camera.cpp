@@ -34,8 +34,8 @@ Camera::~Camera()
 //Rotate the camera on the y axis to rotate left and right
 void Camera::RotateCamera(float yawDegrees, float pitchDegrees)
 {
-	m_camera_rotation_yaw += yawDegrees; //Radify the Angles
-	m_camera_rotation_pitch += pitchDegrees; //Radify the angles
+	m_camera_rotation_yaw += (yawDegrees * (XM_PI / 180.0)); //Radify the Angles
+	m_camera_rotation_pitch += (pitchDegrees* (XM_PI / 180.0)); //Radify the angles
 	
 	
 	//Clamp the pitch
@@ -93,8 +93,8 @@ void Camera::Strafe(float distance)
 	switch (m_camType)
 	{
 	case CameraType::FirstPerson:
-		m_x += XMVectorGetX(m_right) * distance;
-		m_z += XMVectorGetZ(m_right) * distance;
+		m_x += XMVectorGetX(m_right) * -distance;
+		m_z += XMVectorGetZ(m_right) * -distance;
 
 		break;
 	case CameraType::FreeLook:
@@ -118,13 +118,13 @@ XMMATRIX Camera::GetViewMatrix()
 void Camera::Update()
 {
 	
-	m_rotationMatrix = XMMatrixRotationRollPitchYaw(m_camera_rotation_pitch, m_camera_rotation_yaw, 0);
+	
 
 	if(m_camType == CameraType::FirstPerson)
 	{
-		m_dx = sin(m_camera_rotation_yaw * (XM_PI / 180.0)); 
-		m_dy = -sin(m_camera_rotation_pitch * (XM_PI / 180.0));
-		m_dz = cos(m_camera_rotation_yaw * (XM_PI / 180.0));
+		m_dx = sin(m_camera_rotation_yaw); 
+		m_dy = -sin(m_camera_rotation_pitch );
+		m_dz = cos(m_camera_rotation_yaw );
 		
 		m_position = XMVectorSet(m_x, m_y, m_z, 0.0);
 		m_target = XMVectorSet(m_x + m_dx, m_y + m_dy, m_z + m_dz, 0);
@@ -135,7 +135,8 @@ void Camera::Update()
 	}
 	else if (m_camType == CameraType::FreeLook)
 	{
-		
+		m_rotationMatrix = XMMatrixRotationRollPitchYaw(m_camera_rotation_pitch, m_camera_rotation_yaw, 0);
+
 		m_target = XMVector3TransformCoord(m_dForward, m_rotationMatrix);
 		m_target = XMVector3Normalize(m_target);
 		m_right = XMVector3TransformCoord(m_dRight, m_rotationMatrix);
