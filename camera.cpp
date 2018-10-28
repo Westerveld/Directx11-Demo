@@ -38,11 +38,25 @@ void Camera::RotateCamera(float yawDegrees, float pitchDegrees)
 	m_camera_rotation_pitch += (pitchDegrees* (XM_PI / 180.0)); //Radify the angles
 	
 	
-	//Clamp the pitch
-	if (m_camera_rotation_pitch < -90.0f)
-		m_camera_rotation_pitch = -90.0f;
-	if (m_camera_rotation_pitch > 90.0f)
-		m_camera_rotation_pitch = 90.0f;
+	switch (m_camType)
+	{
+		case CameraType::FirstPerson:
+			//Clamp the pitch to stop the camera moving up and down by holding one key
+			if (m_camera_rotation_pitch < (-90.0f * (XM_PI / 180.0)))
+				m_camera_rotation_pitch = (-90.0f* (XM_PI / 180.0));
+			if (m_camera_rotation_pitch > (90.0f * (XM_PI / 180.0)))
+				m_camera_rotation_pitch = (90.0f* (XM_PI / 180.0));
+			break;
+		case CameraType::FreeLook:
+			//Allow the camera to fully rotate 360 degrees by changing the value to a positive if it reaches the limits. This helps prevent gimble lock
+			if (m_camera_rotation_pitch < (-180.0f * (XM_PI / 180.0)))
+				m_camera_rotation_pitch = (180.0f * (XM_PI / 180.0));
+			if (m_camera_rotation_pitch > (180.0f * (XM_PI / 180.0)))
+				m_camera_rotation_pitch = (-180.0f * (XM_PI / 180.0));
+			break;
+		case CameraType::ThirdPerson:
+			break;
+	}
 }
 
 
