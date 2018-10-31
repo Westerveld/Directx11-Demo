@@ -131,14 +131,15 @@ XMMATRIX Camera::GetViewMatrix()
 
 void Camera::Update()
 {
-	
-	
+
+	m_rotationMatrix = XMMatrixRotationRollPitchYaw(m_camera_rotation_pitch, m_camera_rotation_yaw, 0);
+
+	m_dx = sin(m_camera_rotation_yaw);
+	m_dy = -sin(m_camera_rotation_pitch);
+	m_dz = cos(m_camera_rotation_yaw);
 
 	if(m_camType == CameraType::FirstPerson)
 	{
-		m_dx = sin(m_camera_rotation_yaw); 
-		m_dy = -sin(m_camera_rotation_pitch );
-		m_dz = cos(m_camera_rotation_yaw );
 		
 		m_position = XMVectorSet(m_x, m_y, m_z, 0.0);
 		m_target = XMVectorSet(m_x + m_dx, m_y + m_dy, m_z + m_dz, 0);
@@ -149,7 +150,6 @@ void Camera::Update()
 	}
 	else if (m_camType == CameraType::FreeLook)
 	{
-		m_rotationMatrix = XMMatrixRotationRollPitchYaw(m_camera_rotation_pitch, m_camera_rotation_yaw, 0);
 
 		m_target = XMVector3TransformCoord(m_dForward, m_rotationMatrix);
 		m_target = XMVector3Normalize(m_target);
