@@ -1,45 +1,40 @@
+
+
 cbuffer CBuffer0
 {
-	float red_fraction; //4 bytes
-	float green_fraction;
-	float blue_fraction;
-	float alpha;
-}
-
-cbuffer CBuffer1
-{
 	matrix WVPMatrix; //64 bytes
-	float vertical;
-	float horizontal;
-	float width;
-	float height;
+    float4 dirLightVector; //16 bytes
+    float4 dirLightCol;
+    float4 ambLightcol;
 }
 
 struct VOut
 {
 	float4 position : SV_POSITION;
 	float4 color	: COLOR;
+    float2 texcoord : TEXCOORD;
 };
 
-VOut VShader(float4 position : POSITION, float4 color : COLOR)
+Texture2D texture0;
+SamplerState sampler0;
+
+VOut VShader(float4 position : POSITION, float4 color : COLOR, float2 texcoord : TEXCOORD, float3 normal: NORMAL)
 {
 	VOut output;
-
-	color.r *= red_fraction;
-	color.g *= green_fraction;
-	color.b *= blue_fraction;
-
+       
 	output.position = mul(WVPMatrix, position);
-	//output.position = position;
-	//output.position.x *= horizontal;
-	//output.position.y *= vertical;
-	//output.position.z = alpha;
-	output.color = color;
+    
+    float diffuse_amount = dot(dirLightVector.xyz, normal);
+    diffuse_amount = saturate(diffuse_amount);
+
+	output.color = ambLightcol + (dirLightCol * diffuse_amount);
+
+    output.texcoord = texcoord;
 
 	return output;
 }
 
-float4 PShader(float4 position : SV_POSITION, float4 color : COLOR) : SV_TARGET
+float4 PShader(VOut VIn) : SV_TARGET
 {
-	return color;
+    return VIn.color * texture0.Sample(sampler0, VIn.texcoord);
 }

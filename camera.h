@@ -2,8 +2,6 @@
 #include "d3d11.h"
 #include "xnamath.h"
 #include "math.h"
-#define _XM_NO_INTRINSICS_
-#define XM_NO_ALIGNMENT
 
 enum CameraType{FirstPerson, FreeLook, ThirdPerson};
 
@@ -26,5 +24,12 @@ public:
 	void Update(void);
 	XMMATRIX GetViewMatrix();
 	void ChangeCameraType(CameraType newType) { m_camType = newType; }
+
+	float GetX() { return m_x; }
+	float GetY() { return m_y; }
+	float GetZ() { return m_z; }
+
+	XMFLOAT3 GetPosition() { return XMFLOAT3(m_x, m_y, m_z); }
+
 };
 
