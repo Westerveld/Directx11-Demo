@@ -34,7 +34,6 @@
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="objfilemodel.cpp" />
     <ClCompile Include="ParticleFactory.cpp" />
-    <ClCompile Include="ReflectModel.cpp" />
     <ClCompile Include="Scene_Node.cpp" />
     <ClCompile Include="SkyBox.cpp" />
     <ClCompile Include="text2D.cpp" />
@@ -46,7 +45,6 @@
     <ClInclude Include="Model.h" />
     <ClInclude Include="objfilemodel.h" />
     <ClInclude Include="ParticleFactory.h" />
-    <ClInclude Include="ReflectModel.h" />
     <ClInclude Include="Scene_Node.h" />
     <ClInclude Include="SkyBox.h" />
     <ClInclude Include="text2D.h" />

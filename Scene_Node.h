@@ -22,7 +22,7 @@ public:
 
 	void UpdateCollisionTree(XMMATRIX* world, float scale);
 
-	bool CheckCollision(Scene_Node* compaareTree);
+	bool CheckCollision(Scene_Node* compareTree);
 	bool CheckCollision(Scene_Node* compareTree, Scene_Node* objectTreeRoot);
 
 

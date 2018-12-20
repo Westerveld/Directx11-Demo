@@ -12,6 +12,7 @@ ParticleFactory::ParticleFactory(ID3D11Device* device, ID3D11DeviceContext* devi
 
 	m_timePrevious = float(timeGetTime()) / 1000.0f;
 	m_untilParticle = 1.0f;
+	m_isActive = true;
 
 	m_xAngle = 0.0f;
 	m_yAngle = 0.0f;

@@ -49,6 +49,7 @@ Text2D*					g_2DText;
 LightManager*			g_lights;
 Model*					g_Sphere;
 Model*					g_Plane;
+Model*					g_Cube;
 SkyBox*					g_SkyBox;
 ParticleFactory*		g_Particles;
 
@@ -56,6 +57,7 @@ Scene_Node*				g_rootNode;
 Scene_Node*				g_node1;
 Scene_Node*				g_node2;
 Scene_Node*				g_node3;
+Scene_Node*				g_camNode;
 
 InputHandler*			g_Input;
 
@@ -103,6 +105,7 @@ void RenderFrame(void);
 HRESULT InitialiseGraphics(void);
 void CheckInputs();
 void SetUpScene();
+void UpdateCameraPosition();
 
 
 
@@ -576,8 +579,9 @@ HRESULT InitialiseGraphics()
 
 	g_Sphere = new Model(g_pD3DDevice, g_pImmediateContext, g_lights);
 	g_Plane = new Model(g_pD3DDevice, g_pImmediateContext, g_lights);
+	g_Cube = new Model(g_pD3DDevice, g_pImmediateContext, g_lights);
 	
-	hr = g_Sphere->LoadObjModel((char*)"assets/Sphere.obj", (char*)"assets/marble2.png");
+	hr = g_Sphere->LoadObjModel((char*)"assets/Sphere.obj");
 	g_Sphere->LoadCustomShader((char*)"reflect_shader.hlsl", (char*)"ModelVS", (char*)"ModelPS");
 	g_Sphere->ChangeModelType(ModelType::Shiny);
 	if (FAILED(hr))
@@ -585,18 +589,29 @@ HRESULT InitialiseGraphics()
 		return hr;
 	}
 
-	hr = g_Plane->LoadObjModel((char*)"assets/plane.obj", (char*)"assets/brick.png");
+	hr = g_Plane->LoadObjModel((char*)"assets/plane.obj");
+	if (FAILED(hr))
+	{
+		return hr;
+	}
 	g_Plane->LoadDefaultShaders();
+
+	hr = g_Cube->LoadObjModel((char*)"assets/cube.obj");
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	g_Cube->LoadDefaultShaders();
+
 
 	g_Plane->SetSampler(g_pSampler0);
 	g_Plane->SetTexture(g_pBrickTexture);
 	g_Sphere->SetSampler(g_pSampler0);
 	g_Sphere->SetTexture(g_pSkyBoxTexture);
+	g_Cube->SetSampler(g_pSampler0);
+	g_Cube->SetTexture(g_pBrickTexture);
 	
-	if (FAILED(hr))
-	{
-		return hr;
-	}
 
 	g_SkyBox = new SkyBox(g_pD3DDevice, g_pImmediateContext);
 	hr = g_SkyBox->CreateSkybox("assets/brick.png");
@@ -626,10 +641,6 @@ void RenderFrame(void)
 	g_pImmediateContext->ClearRenderTargetView(g_pBackBufferRTView, rgba_clear_colour);
 	g_pImmediateContext->ClearDepthStencilView(g_pZBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	
-	/*g_pImmediateContext->VSSetShader(g_pVertexShader, 0, 0);
-	g_pImmediateContext->PSSetShader(g_pPixelShader, 0, 0);
-	g_pImmediateContext->IASetInputLayout(g_pInputLayout);*/
-
 	//Render Here
 
 	//Lighting set up
@@ -656,16 +667,6 @@ void RenderFrame(void)
 	g_2DText->RenderText();
 
 
-	//Set vertex buffer 03-01
-	/*UINT stride = sizeof(POS_COL_TEX_NORM_VERTEX);
-	UINT offset = 0;
-	g_pImmediateContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
-
-	//Select primitive type to use 03-01
-	g_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	*/
-
 	//Display what has just been rendered
 	g_pSwapChain->Present(0, 0);
 }
@@ -678,22 +679,99 @@ void CheckInputs(void)
 		DestroyWindow(g_hWnd);
 
 	if (g_Input->IsKeyPressed(DIK_E))
+	{
 		g_cam->Up(-0.010f);
+		UpdateCameraPosition();
+
+		XMMATRIX identity = XMMatrixIdentity();
+
+		g_rootNode->UpdateCollisionTree(&identity, 1.0f);
+
+		if (g_camNode->CheckCollision(g_rootNode))
+		{
+			g_cam->Up(0.010f);
+			UpdateCameraPosition();
+		}
+	}
 
 	if (g_Input->IsKeyPressed(DIK_Q))
+	{
 		g_cam->Up(0.010f);
+		UpdateCameraPosition();
+
+		XMMATRIX identity = XMMatrixIdentity();
+
+		g_rootNode->UpdateCollisionTree(&identity, 1.0f);
+
+		if (g_camNode->CheckCollision(g_rootNode))
+		{
+			g_cam->Up(-0.010f);
+			UpdateCameraPosition();
+		}
+	}
 
 	if (g_Input->IsKeyPressed(DIK_W))
+	{
 		g_cam->Forward(0.010f);
+		UpdateCameraPosition();
+
+		XMMATRIX identity = XMMatrixIdentity();
+
+		g_rootNode->UpdateCollisionTree(&identity, 1.0f);
+
+		if (g_camNode->CheckCollision(g_rootNode))
+		{
+			g_cam->Forward(-0.010f);
+			UpdateCameraPosition();
+		}
+	}
 
 	if (g_Input->IsKeyPressed(DIK_S))
+	{
 		g_cam->Forward(-0.010f);
+		UpdateCameraPosition();
 
+		XMMATRIX identity = XMMatrixIdentity();
+
+		g_rootNode->UpdateCollisionTree(&identity, 1.0f);
+
+		if (g_camNode->CheckCollision(g_rootNode))
+		{
+			g_cam->Forward(0.010f);
+			UpdateCameraPosition();
+		}
+	}
 	if (g_Input->IsKeyPressed(DIK_A))
+	{
 		g_cam->Strafe(-0.010f);
+		UpdateCameraPosition();
+
+		XMMATRIX identity = XMMatrixIdentity();
+
+		g_rootNode->UpdateCollisionTree(&identity, 1.0f);
+
+		if (g_camNode->CheckCollision(g_rootNode))
+		{
+			g_cam->Strafe(0.010f);
+			UpdateCameraPosition();
+		}
+	}
 
 	if (g_Input->IsKeyPressed(DIK_D))
+	{
 		g_cam->Strafe(0.010f);
+		UpdateCameraPosition();
+
+		XMMATRIX identity = XMMatrixIdentity();
+
+		g_rootNode->UpdateCollisionTree(&identity, 1.0f);
+
+		if (g_camNode->CheckCollision(g_rootNode))
+		{
+			g_cam->Strafe(-0.010f);
+			UpdateCameraPosition();
+		}
+	}
 
 	if (g_Input->IsKeyPressed(DIK_LEFT))
 		g_cam->RotateCamera(-0.010f, 0.0f);
@@ -715,7 +793,9 @@ void CheckInputs(void)
 		g_Particles->SwitchParticleType(ParticleType::Fountain);
 
 	if (g_Input->IsKeyPressed(DIK_F))
-		g_Particles->SetActive(true);
+	{
+		g_Particles->SetActive(!g_Particles->GetActive());
+	}
 
 	if (g_Input->GetMouseButtonDown(0))
 	{
@@ -744,13 +824,29 @@ void SetUpScene()
 	g_node1 = new Scene_Node();
 	g_node2 = new Scene_Node();
 	g_node3 = new Scene_Node();
+	g_camNode = new Scene_Node();
+
 	g_node1->SetModel(g_Plane);
+	g_node1->SetYPos(-3.0f);
 	g_node2->SetModel(g_Sphere);
 	g_node2->SetXPos(5.0f);
+	g_node2->SetZPos(10.0f);
 	g_node3->SetModel(g_Sphere);
 	g_node3->SetXPos(-5.0f);
+	g_node3->SetXPos(10.0f);
+	g_camNode->SetModel(g_Cube);
 
 	g_rootNode->AddChildNode(g_node1);
+	g_rootNode->AddChildNode(g_camNode);
 	g_node1->AddChildNode(g_node2);
 	g_node2->AddChildNode(g_node3);
+
+	UpdateCameraPosition();
+}
+
+void UpdateCameraPosition()
+{
+	g_camNode->SetXPos(g_cam->GetX());
+	g_camNode->SetYPos(g_cam->GetY());
+	g_camNode->SetZPos(g_cam->GetZ());
 }

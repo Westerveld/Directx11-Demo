@@ -36,21 +36,16 @@ private:
 
 	LightManager*				m_lights;
 
-	float						m_x, m_y, m_z;
-	float						m_xAngle, m_yAngle, m_zAngle;
-	float						m_scale, m_defScale;
-
 	float						m_boundingSphereCentreX, m_boundingSphereCentreY, m_boundingSphereCentreZ, m_boundingSphereRadius, m_defRadius;
 
 	void						CalculateModelCentrePoint();
 	void						CalculateBoudingSphereRadius();
 
-	XMMATRIX					GetWorldMatrix();
 	ModelType					m_type;
 public:
 	Model(ID3D11Device* device, ID3D11DeviceContext* deviceContext, LightManager* lights);
 	~Model();
-	HRESULT LoadObjModel(char* filename, char* textureName);
+	HRESULT LoadObjModel(char* filename);
 	void Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection);
 
 	//Texture creation

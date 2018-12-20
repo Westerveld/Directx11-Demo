@@ -6,16 +6,6 @@ Model::Model(ID3D11Device* device, ID3D11DeviceContext* deviceContext, LightMana
 	m_pD3DDevice = device;
 	m_lights = lights;
 
-	m_x = 0.0f;
-	m_y = 0.0f;
-	m_z = 0.0f;
-
-	m_xAngle = 0.0f;
-	m_yAngle = 0.0f;
-	m_zAngle = 0.0f;
-
-	m_scale = 1.0f;
-	m_defScale = m_scale;
 
 	m_pTexture = NULL;
 	m_pSampler = NULL;
@@ -29,13 +19,14 @@ Model::~Model()
 	if (m_pInputLayout) m_pInputLayout->Release();
 	if (m_pPShader) m_pPShader->Release();
 	if (m_pVShader) m_pVShader->Release();
+	if (m_pShinyBuffer) m_pShinyBuffer->Release();
 	if (m_pConstantBuffer) m_pConstantBuffer->Release();
 	if (m_pD3DDevice) m_pD3DDevice->Release();
 	if (m_pImmediateContext) m_pImmediateContext->Release();
 	if (m_pObject)delete m_pObject;
 }
 
-HRESULT Model::LoadObjModel(char* filename, char* textureName)
+HRESULT Model::LoadObjModel(char* filename)
 {
 	HRESULT hr = S_OK;
 	m_pObject = new ObjFileModel(filename, m_pD3DDevice, m_pImmediateContext);
@@ -320,23 +311,6 @@ void Model::CalculateBoudingSphereRadius()
 #pragma endregion
 
 #pragma region Getters and Setters
-XMMATRIX Model::GetWorldMatrix()
-{
-	XMMATRIX world;
-	world = XMMatrixIdentity();
-	//Set scale
-	world *= XMMatrixScaling(m_scale, m_scale, m_scale);
-
-	//Set rotation
-	world *= XMMatrixRotationX(XMConvertToRadians(m_xAngle));
-	world *= XMMatrixRotationY(XMConvertToRadians(m_yAngle));
-	world *= XMMatrixRotationZ(XMConvertToRadians(m_zAngle));
-
-	//Set position
-	world *= XMMatrixTranslation(m_x, m_y, m_z);
-
-	return world;
-}
 
 float Model::GetBoundingSphereRadius()
 {

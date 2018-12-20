@@ -71,6 +71,7 @@ void Scene_Node::Execute(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection)
 		m_model->Draw(&local_world, view, projection);
 	}
 
+
 	for (int i = 0; i < m_children.size(); i++)
 	{
 		m_children[i]->Execute(&local_world, view, projection);
