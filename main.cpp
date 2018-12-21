@@ -48,6 +48,7 @@ POINT					g_mousePos;
 Text2D*					g_2DText;
 LightManager*			g_lights;
 Model*					g_Sphere;
+Model*					g_brickSphere;
 Model*					g_Plane;
 Model*					g_Cube;
 SkyBox*					g_SkyBox;
@@ -601,9 +602,15 @@ HRESULT InitialiseGraphics()
 	{
 		return hr;
 	}
+	
 
 	g_Cube->LoadDefaultShaders();
 
+	g_brickSphere = new Model(g_pD3DDevice, g_pImmediateContext, g_lights);
+	g_brickSphere->LoadObjModel((char*)"assets/Sphere.obj");
+	g_brickSphere->LoadDefaultShaders();
+	g_brickSphere->SetSampler(g_pSampler0);
+	g_brickSphere->SetTexture(g_pBrickTexture);
 
 	g_Plane->SetSampler(g_pSampler0);
 	g_Plane->SetTexture(g_pBrickTexture);
@@ -660,7 +667,7 @@ void RenderFrame(void)
 	g_rootNode->Execute(&world, &view, &projection);
 	
 
-	g_Particles->Draw(&view, &projection, &g_cam->GetPosition());
+	//g_Particles->Draw(&view, &projection, &g_cam->GetPosition());
 
 
 
@@ -774,7 +781,7 @@ void CheckInputs(void)
 	}
 
 	if (g_Input->IsKeyPressed(DIK_LEFT))
-		g_cam->RotateCamera(-0.010f, 0.0f);
+		
 
 	if (g_Input->IsKeyPressed(DIK_RIGHT))
 		g_cam->RotateCamera(0.010f, 0.0f);
@@ -807,10 +814,10 @@ void CheckInputs(void)
 	}
 
 	if (g_Input->IsKeyPressed(DIK_J))
-		g_node3->MoveForward(1, g_rootNode);
+		g_node3->MoveForward(0.01f, g_rootNode);
 
 	if (g_Input->IsKeyPressed(DIK_O))
-		g_node2->MoveForward(1, g_rootNode);
+		g_node2->MoveForward(0.01f, g_rootNode);
 
 	if (g_Input->IsKeyPressed(DIK_I))
 		g_node2->LookAt_XZ(g_cam->GetX(), g_cam->GetZ());
@@ -821,25 +828,26 @@ void CheckInputs(void)
 void SetUpScene()
 {
 	g_rootNode = new Scene_Node();
-	g_node1 = new Scene_Node();
+	//g_node1 = new Scene_Node();
 	g_node2 = new Scene_Node();
 	g_node3 = new Scene_Node();
 	g_camNode = new Scene_Node();
 
-	g_node1->SetModel(g_Plane);
-	g_node1->SetYPos(-3.0f);
+	//g_node1->SetModel(g_Plane);
+	//g_node1->SetYPos(-3.0f);
 	g_node2->SetModel(g_Sphere);
 	g_node2->SetXPos(5.0f);
 	g_node2->SetZPos(10.0f);
-	g_node3->SetModel(g_Sphere);
+	g_node3->SetModel(g_brickSphere);
 	g_node3->SetXPos(-5.0f);
 	g_node3->SetXPos(10.0f);
 	g_camNode->SetModel(g_Cube);
+	g_camNode->SetScale(0.1f);
 
-	g_rootNode->AddChildNode(g_node1);
+	//g_rootNode->AddChildNode(g_node1);
 	g_rootNode->AddChildNode(g_camNode);
-	g_node1->AddChildNode(g_node2);
-	g_node2->AddChildNode(g_node3);
+	g_rootNode->AddChildNode(g_node2);
+	g_rootNode->AddChildNode(g_node3);
 
 	UpdateCameraPosition();
 }

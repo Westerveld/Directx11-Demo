@@ -94,6 +94,8 @@ void Scene_Node::UpdateCollisionTree(XMMATRIX* world, float scale)
 
 	local_world *= *world;
 
+	m_worldScale = scale * m_scale;
+
 	XMVECTOR v;
 
 	if (m_model)
@@ -146,7 +148,9 @@ bool Scene_Node::CheckCollision(Scene_Node* compareTree, Scene_Node* objectTreeR
 		float dz = z1 - z2;
 
 		if (sqrt(dx*dx + dy * dy + dz * dz) < (compareTree->m_model->GetBoundingSphereRadius() * compareTree->m_worldScale) + (this->m_model->GetBoundingSphereRadius() * m_worldScale))
+		{
 			return true;
+		}
 	}
 
 	for (int i = 0; i < compareTree->m_children.size(); i++)
