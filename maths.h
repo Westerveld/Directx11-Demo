@@ -3,7 +3,7 @@
 
 struct Plane
 {
-	xyz normal;	// normal of the plane
+	xyz normal;					// normal of the plane
 	float d;					// the d constant in the equation for this plane
 };
 
@@ -17,6 +17,8 @@ public:
 	xyz Normal(xyz* v1, xyz* v2, xyz* v3);
 	Plane CalcPlane(xyz* v1, xyz* v2, xyz* v3);
 	float CalcPlanePoint(Plane* p1, xyz* v1);
+	xyz PlaneIntersection(Plane* p, xyz* v1, xyz* v2);
+	bool InTriangle(xyz* t0, xyz* t1, xyz* t2, xyz* point);
 	int Sign(float number);
 
 };

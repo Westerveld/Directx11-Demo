@@ -80,19 +80,18 @@ void Scene_Node::Execute(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection)
 
 void Scene_Node::UpdateCollisionTree(XMMATRIX* world, float scale)
 {
-	XMMATRIX local_world;
 
-	local_world = XMMatrixIdentity();
+	m_localWorldMatrix = XMMatrixIdentity();
 
-	local_world = XMMatrixRotationX(XMConvertToRadians(m_Xangle));
-	local_world *= XMMatrixRotationY(XMConvertToRadians(m_Yangle));
-	local_world *= XMMatrixRotationZ(XMConvertToRadians(m_Zangle));
+	m_localWorldMatrix = XMMatrixRotationX(XMConvertToRadians(m_Xangle));
+	m_localWorldMatrix *= XMMatrixRotationY(XMConvertToRadians(m_Yangle));
+	m_localWorldMatrix *= XMMatrixRotationZ(XMConvertToRadians(m_Zangle));
 
-	local_world *= XMMatrixScaling(m_scale, m_scale, m_scale);
+	m_localWorldMatrix *= XMMatrixScaling(m_scale, m_scale, m_scale);
 
-	local_world *= XMMatrixTranslation(m_x, m_y, m_z);
+	m_localWorldMatrix *= XMMatrixTranslation(m_x, m_y, m_z);
 
-	local_world *= *world;
+	m_localWorldMatrix *= *world;
 
 	m_worldScale = scale * m_scale;
 

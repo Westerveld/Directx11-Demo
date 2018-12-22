@@ -67,5 +67,6 @@ public:
 	float GetBoundingSphereZ(void) { return m_boundingSphereCentreZ; }
 
 	void ChangeModelType(ModelType newType) { m_type = newType; }
+	ObjFileModel* GetModel(void) { return m_pObject; }
 };
 

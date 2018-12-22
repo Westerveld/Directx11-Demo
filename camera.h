@@ -29,6 +29,10 @@ public:
 	float GetY() { return m_y; }
 	float GetZ() { return m_z; }
 
+	float GetdX() { return m_dx; }
+	float GetdY() { return m_dy; }
+	float GetdZ() { return m_dz; }
+
 	XMFLOAT3 GetPosition() { return XMFLOAT3(m_x, m_y, m_z); }
 
 };

@@ -72,3 +72,26 @@ int maths::Sign(float number)
 {
 	return (number < 0.0f ? -1 : (number > 0.0f ? 1 : 0));
 }
+
+xyz maths::PlaneIntersection(Plane* p, xyz* v1, xyz* v2)
+{
+	xyz r, inter;
+	float t;
+
+	r.x = v2->x - v1->x;
+	r.y = v2->y - v1->y;
+	r.z = v2->z - v1->z;
+	t = (-(p->d) - Dot(&(p->normal), v1)) / Dot(&(p->normal), &r);
+
+	inter.x = v1->x + (r.x * t);
+	inter.y = v1->y + (r.y * t);
+	inter.z = v1->z + (r.z * t);
+
+	return inter;
+}
+
+bool maths::InTriangle(xyz* t0, xyz* t1, xyz* t2, xyz* point)
+{
+
+
+}
