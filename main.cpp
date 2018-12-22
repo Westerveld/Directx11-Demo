@@ -15,6 +15,7 @@
 #include "SkyBox.h"
 #include "ParticleFactory.h"
 #include "Scene_Node.h"
+#include "maths.h"
 
 //////////////////////////////////////////////////////////////////////////////////////
 //	Global Variables
@@ -44,6 +45,7 @@ ID3D11SamplerState*		g_pSampler0; //Tutorial 08-01
 
 
 Camera*					g_cam;
+maths*					g_maths;
 POINT					g_mousePos;
 Text2D*					g_2DText;
 LightManager*			g_lights;
@@ -577,6 +579,8 @@ HRESULT InitialiseGraphics()
 
 	g_cam = new Camera(0.0, 0.0, -0.5, 0.0);
 	g_lights = new LightManager();
+
+	g_maths = new maths();
 
 	g_Sphere = new Model(g_pD3DDevice, g_pImmediateContext, g_lights);
 	g_Plane = new Model(g_pD3DDevice, g_pImmediateContext, g_lights);

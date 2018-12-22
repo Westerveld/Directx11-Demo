@@ -11,6 +11,7 @@ private:
 	float					m_Xangle, m_Yangle, m_Zangle;
 	float					m_scale, m_worldScale;
 	float					m_worldCentreX, m_worldCentreY, m_worldCentreZ;
+	XMMATRIX				m_localWorldMatrix;
 public:
 	Scene_Node();
 	~Scene_Node();
@@ -58,6 +59,7 @@ public:
 	float GetScale(void) { return m_scale; }
 
 	void SetModel(Model* model) { m_model = model; }
+	
 
 	XMVECTOR GetWorldCentre(void);
 #pragma endregion 

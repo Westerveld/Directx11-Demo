@@ -31,6 +31,7 @@
     <ClCompile Include="InputHandler.cpp" />
     <ClCompile Include="LightManager.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="maths.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="objfilemodel.cpp" />
     <ClCompile Include="ParticleFactory.cpp" />
@@ -42,6 +43,7 @@
     <ClInclude Include="camera.h" />
     <ClInclude Include="InputHandler.h" />
     <ClInclude Include="LightManager.h" />
+    <ClInclude Include="maths.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="objfilemodel.h" />
     <ClInclude Include="ParticleFactory.h" />
