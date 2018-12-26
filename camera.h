@@ -3,6 +3,8 @@
 #include "xnamath.h"
 #include "math.h"
 
+#include "Scene_Node.h"
+
 enum CameraType{FirstPerson, FreeLook, ThirdPerson};
 
 class Camera
@@ -14,6 +16,7 @@ private:
 	XMMATRIX m_rotationMatrix;
 
 	CameraType m_camType;
+	Scene_Node* m_followTarget;
 public:
 	Camera(float x, float y, float z, float camera_rotation);
 	~Camera();
@@ -25,15 +28,18 @@ public:
 	XMMATRIX GetViewMatrix();
 	void ChangeCameraType(CameraType newType) { m_camType = newType; }
 
+	//Return positions
 	float GetX() { return m_x; }
 	float GetY() { return m_y; }
 	float GetZ() { return m_z; }
 
-	float GetdX() { return m_dx; }
-	float GetdY() { return m_dy; }
-	float GetdZ() { return m_dz; }
+	//Return look at position
+	float GetdX() { return XMVectorGetX(m_target); }
+	float GetdY() { return XMVectorGetY(m_target); }
+	float GetdZ() { return XMVectorGetZ(m_target); }
 
 	XMFLOAT3 GetPosition() { return XMFLOAT3(m_x, m_y, m_z); }
 
+	void SetTarget(Scene_Node* target) { m_followTarget = target; }
 };
 

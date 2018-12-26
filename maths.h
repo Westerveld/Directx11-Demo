@@ -12,14 +12,14 @@ class maths
 public:
 	maths();
 	~maths();
-	float Dot(xyz* v1, xyz* v2);
-	xyz Cross(xyz* v1, xyz* v2);
-	xyz Normal(xyz* v1, xyz* v2, xyz* v3);
-	Plane CalcPlane(xyz* v1, xyz* v2, xyz* v3);
-	float CalcPlanePoint(Plane* p1, xyz* v1);
-	xyz PlaneIntersection(Plane* p, xyz* v1, xyz* v2);
-	bool InTriangle(xyz* t0, xyz* t1, xyz* t2, xyz* point);
-	int Sign(float number);
-
+	static float Dot(xyz* v1, xyz* v2);
+	static xyz Cross(xyz* v1, xyz* v2);
+	static xyz Normal(xyz* v1, xyz* v2, xyz* v3);
+	static Plane CalcPlane(xyz* v1, xyz* v2, xyz* v3);
+	static float CalcPlanePoint(Plane* p1, xyz* v1);
+	static xyz PlaneIntersection(Plane* p, xyz* v1, xyz* v2);
+	static bool InTriangle(xyz* t0, xyz* t1, xyz* t2, xyz* point);
+	static int Sign(float number);
+	static xyz SetXYZ(float x, float y, float z);
 };
 

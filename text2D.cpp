@@ -97,6 +97,7 @@ Text2D::Text2D(string filename, ID3D11Device* device, ID3D11DeviceContext* conte
 	depthStencilDesc.DepthEnable = true;
 	hr = device->CreateDepthStencilState(&depthStencilDesc, &pDepthEnabledStencilState);
 	if(FAILED(hr)) exit(0);
+
 }
 
 // add a string with position and size to the list
@@ -229,6 +230,7 @@ void Text2D::RenderText(void)
 
 	// turn on Z buffer so other rendering can use it
 	pImmediateContext->OMSetDepthStencilState(pDepthEnabledStencilState, 1);
+	
 }
 
 

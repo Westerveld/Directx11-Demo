@@ -11,6 +11,7 @@ InputHandler::InputHandler(HWND* hWnd, HINSTANCE* hInstance)
 }
 
 
+//Clean up
 InputHandler::~InputHandler()
 {
 	if (m_mouseDevice)
@@ -28,6 +29,7 @@ InputHandler::~InputHandler()
 	if (m_hInstance) m_hInstance = nullptr;
 }
 
+//Set up the inputs
 HRESULT InputHandler::InitialiseKeyboardInput()
 {
 	HRESULT hr;
@@ -74,6 +76,7 @@ void InputHandler::ReadInputStates()
 
 	if (FAILED(hr))
 	{
+		//Reacquire the keyboard if it doesnt exist
 		if ((hr == DIERR_INPUTLOST) || (hr == DIERR_NOTACQUIRED))
 		{
 			m_keyboardDevice->Acquire();
@@ -83,6 +86,7 @@ void InputHandler::ReadInputStates()
 	hr = m_mouseDevice->GetDeviceState(sizeof(m_mouseStates), (LPVOID)&m_mouseStates);
 	if (FAILED(hr))
 	{
+		//Reacquire the mouse if it doesnt exist
 		if ((hr == DIERR_NOTACQUIRED) || (hr == DIERR_INPUTLOST))
 		{
 			m_mouseDevice->Acquire();
@@ -91,13 +95,14 @@ void InputHandler::ReadInputStates()
 
 }
 
+//bool returns whether the inputted key is press
 bool InputHandler::IsKeyPressed(unsigned char DI_keycode)
 {
 	return m_keyboardKeyStates[DI_keycode] & 0x80;
 }
 
+//Returns whether the inputted mouse button is pressed
 bool InputHandler::GetMouseButtonDown(unsigned char mouseKey)
 {
-
 	return m_mouseStates.rgbButtons[mouseKey] & 0x80;
 }

@@ -2,6 +2,7 @@
 
 
 
+
 Scene_Node::Scene_Node()
 {
 	m_model = NULL;
@@ -108,14 +109,14 @@ void Scene_Node::UpdateCollisionTree(XMMATRIX* world, float scale)
 		v = XMVectorSet(0, 0, 0, 0);
 	}
 
-	v = XMVector3Transform(v, local_world);
+	v = XMVector3Transform(v, m_localWorldMatrix);
 	m_worldCentreX = XMVectorGetX(v);
 	m_worldCentreY = XMVectorGetY(v);
 	m_worldCentreZ = XMVectorGetZ(v);
 
 	for (int i = 0; i < m_children.size(); i++)
 	{
-		m_children[i]->UpdateCollisionTree(&local_world, m_worldScale);
+		m_children[i]->UpdateCollisionTree(&m_localWorldMatrix, m_worldScale);
 	}
 }
 
@@ -318,3 +319,93 @@ void Scene_Node::LookAt_XYZ(float x, float y, float z)
 	m_Yangle = atan2(dx, dz) * (180.0 / XM_PI);
 }
 #pragma endregion
+
+bool Scene_Node::CheckCollisionRay(float x, float y, float z, float rx, float ry, float rz)
+{
+	if (m_model)
+	{
+		xyz pos, rayStart, rayEnd;
+
+		//Set the xyz positions for our position, the ray start, direction and end
+		pos = maths::SetXYZ(m_x, m_y, m_z);
+		rayStart = maths::SetXYZ(x, y, z);
+		rayEnd = maths::SetXYZ(x + rx, y + ry, z + rz);
+		
+		//Calculate the distance between us and the ray start
+		float distance = maths::Dot(&pos, &rayStart);
+		//Calculate the distance between the rayStart and rayEnd
+		float rayDistance = maths::Dot(&rayStart, &rayEnd);
+		//Add on the radius of the bounding spehere
+		rayDistance += m_model->GetBoundingSphereRadius();
+
+		//If the distance is greater than the ray distance, check through the model for a collision
+		if (distance > rayDistance)
+		{
+			//Get the object model file
+			ObjFileModel* pObject = m_model->GetModel();
+			//Cycle through the vertices
+			for (int i = 0; i < pObject->numverts; i+=3)
+			{
+				//Store the three vertices
+				XMVECTOR p1 = XMVectorSet(pObject->vertices[i].Pos.x,
+					pObject->vertices[i].Pos.y,
+					pObject->vertices[i].Pos.z,
+					0.0f);
+				XMVECTOR p2 = XMVectorSet(pObject->vertices[i + 1].Pos.x,
+					pObject->vertices[i + 1].Pos.y,
+					pObject->vertices[i + 1].Pos.z,
+					0.0f);
+				XMVECTOR p3 = XMVectorSet(pObject->vertices[i + 2].Pos.x,
+					pObject->vertices[i + 2].Pos.y,
+					pObject->vertices[i + 2].Pos.z,
+					0.0f);
+
+				//Transform them to world space
+				p1 = XMVector3Transform(p1, m_localWorldMatrix);
+				p2 = XMVector3Transform(p2, m_localWorldMatrix);
+				p3 = XMVector3Transform(p3, m_localWorldMatrix);
+
+				//Convert to xyz for maths equations
+				xyz t1 = maths::SetXYZ(XMVectorGetX(p1), XMVectorGetY(p1), XMVectorGetZ(p1));
+				xyz t2 = maths::SetXYZ(XMVectorGetX(p2), XMVectorGetY(p2), XMVectorGetZ(p2));
+				xyz t3 = maths::SetXYZ(XMVectorGetX(p3), XMVectorGetY(p3), XMVectorGetZ(p3));
+
+				//Create a plane for the triangle
+				Plane tri = maths::CalcPlane(&t1, &t2, &t3);
+				float ray1, ray2;
+				//Calculate the plane points to see if they are different
+				ray1 = maths::CalcPlanePoint(&tri, &rayStart);
+				ray2 = maths::CalcPlanePoint(&tri, &rayEnd);
+				//Set the floats using Sign to ensure they are either -1, 0 or 1
+				ray1 = maths::Sign(ray1);
+				ray2 = maths::Sign(ray2);
+				//If they are different values
+				if (ray1 != ray2)
+				{
+					bool check1, check2;
+					//Check to see if the points are within the triangles
+					check1 = maths::InTriangle(&t1, &t2, &t3, &rayStart);
+					check2 = maths::InTriangle(&t1, &t2, &t3, &rayEnd);
+					
+					//if either point is in the triangle, we have a collision
+					if (check1 || check2)
+					{
+						return true;
+					}
+				}
+
+			}
+		}
+	}
+
+	for (int i = 0; i < m_children.size(); i++)
+	{
+		//Check through the children of the node
+		if (m_children[i]->CheckCollisionRay(x, y, z, rx, ry, rz))
+		{
+			return true;
+		}
+	}
+	return false;
+
+}

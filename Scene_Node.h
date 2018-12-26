@@ -1,5 +1,6 @@
 #pragma once
 #include "Model.h"
+#include "maths.h"
 
 class Scene_Node
 {
@@ -32,6 +33,8 @@ public:
 
 	void LookAt_XZ(float x, float z);
 	void LookAt_XYZ(float x, float y, float z);
+
+	bool CheckCollisionRay(float x, float y, float z, float rx, float ry, float rz);
 
 #pragma region Getters and Setters
 	void SetXPos(float value) { m_x = value; }

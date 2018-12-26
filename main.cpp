@@ -431,6 +431,7 @@ HRESULT InitialiseD3D()
 	screenHeight = height;
 	
 	g_pImmediateContext->RSSetViewports(1, &viewport);
+
 	g_2DText = new Text2D("assets/font1.bmp", g_pD3DDevice, g_pImmediateContext);
 	
 	return S_OK;
@@ -581,7 +582,6 @@ HRESULT InitialiseGraphics()
 	g_lights = new LightManager();
 
 	g_maths = new maths();
-
 	g_Sphere = new Model(g_pD3DDevice, g_pImmediateContext, g_lights);
 	g_Plane = new Model(g_pD3DDevice, g_pImmediateContext, g_lights);
 	g_Cube = new Model(g_pD3DDevice, g_pImmediateContext, g_lights);
@@ -725,12 +725,13 @@ void CheckInputs(void)
 	{
 		g_cam->Forward(0.010f);
 		UpdateCameraPosition();
+		
 
 		XMMATRIX identity = XMMatrixIdentity();
 
 		g_rootNode->UpdateCollisionTree(&identity, 1.0f);
 
-		if (g_camNode->CheckCollision(g_rootNode))
+		if (g_rootNode->CheckCollisionRay(g_cam->GetX(), g_cam->GetY(), g_cam->GetZ(), g_cam->GetdX(), g_cam->GetdY(), g_cam->GetdZ()))
 		{
 			g_cam->Forward(-0.010f);
 			UpdateCameraPosition();
