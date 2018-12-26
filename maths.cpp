@@ -11,6 +11,13 @@ maths::~maths()
 {
 }
 
+float maths::MagnitudeSqr(xyz* v1)
+{
+	float result = ((*v1).x * (*v1).x) + ((*v1).y * (*v1).y) + ((*v1).z * (*v1).z);
+	
+	return result;
+}
+
 float maths::Dot(xyz* v1, xyz* v2)
 {
 	float dot;

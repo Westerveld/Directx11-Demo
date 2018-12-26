@@ -12,6 +12,7 @@ class maths
 public:
 	maths();
 	~maths();
+	static float MagnitudeSqr(xyz* v1);
 	static float Dot(xyz* v1, xyz* v2);
 	static xyz Cross(xyz* v1, xyz* v2);
 	static xyz Normal(xyz* v1, xyz* v2, xyz* v3);

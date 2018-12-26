@@ -324,17 +324,18 @@ bool Scene_Node::CheckCollisionRay(float x, float y, float z, float rx, float ry
 {
 	if (m_model)
 	{
-		xyz pos, rayStart, rayEnd;
+		xyz pos, rayStart, rayDir, rayEnd;
 
 		//Set the xyz positions for our position, the ray start, direction and end
 		pos = maths::SetXYZ(m_x, m_y, m_z);
 		rayStart = maths::SetXYZ(x, y, z);
+		rayDir = maths::SetXYZ(rx, ry, rz);
 		rayEnd = maths::SetXYZ(x + rx, y + ry, z + rz);
 		
 		//Calculate the distance between us and the ray start
 		float distance = maths::Dot(&pos, &rayStart);
 		//Calculate the distance between the rayStart and rayEnd
-		float rayDistance = maths::Dot(&rayStart, &rayEnd);
+		float rayDistance = maths::MagnitudeSqr(&rayDir);
 		//Add on the radius of the bounding spehere
 		rayDistance += m_model->GetBoundingSphereRadius();
 
