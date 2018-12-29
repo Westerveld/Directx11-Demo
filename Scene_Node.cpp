@@ -212,6 +212,12 @@ bool Scene_Node::CheckCollision(Scene_Node* compareTree, Scene_Node* objectTreeR
 			max.z = object1.z + size.z;
 
 			//Check the box against positions on the sphere
+
+			if (object2.x < min.x && object1)
+			{
+
+			}
+
 		}
 		//Sphere on Box collision
 		else if (m_model->GetCollisionType() == CollisionType::Sphere && compareTree->m_model->GetCollisionType() == CollisionType::Box)
