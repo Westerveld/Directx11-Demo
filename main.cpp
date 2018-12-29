@@ -16,6 +16,7 @@
 #include "ParticleFactory.h"
 #include "Scene_Node.h"
 #include "maths.h"
+#include "Timer.h"
 
 //////////////////////////////////////////////////////////////////////////////////////
 //	Global Variables
@@ -62,6 +63,7 @@ Scene_Node*				g_node2;
 Scene_Node*				g_node3;
 
 InputHandler*			g_Input;
+Timer*					g_Timer;
 
 //Define vertex structure
 struct POS_COL_TEX_NORM_VERTEX //This will be added to and renamed in future tutorials
@@ -103,9 +105,10 @@ HRESULT InitialiseWindow(HINSTANCE hInstance, int nCmdShow);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 HRESULT InitialiseD3D();
 void ShutdownD3D();
+void UpdateScene(double time);
 void RenderFrame(void);
 HRESULT InitialiseGraphics(void);
-void CheckInputs();
+void CheckInputs(double time);
 void SetUpScene();
 
 
@@ -157,12 +160,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		else
 		{
 			
-			// do something
-			g_cam->Update();
-
-			CheckInputs();
-
-			RenderFrame();
+			//Update the timer
+			g_Timer->UpdateTimer();
+			//Update the scene
+			UpdateScene(g_Timer->GetFrameTime());
 		}
 	}
 
@@ -431,7 +432,7 @@ HRESULT InitialiseD3D()
 	g_pImmediateContext->RSSetViewports(1, &viewport);
 
 	g_2DText = new Text2D("assets/font1.bmp", g_pD3DDevice, g_pImmediateContext);
-	
+	g_Timer = new Timer();
 	return S_OK;
 }
 
@@ -654,7 +655,9 @@ HRESULT InitialiseGraphics()
 // Render frame
 void RenderFrame(void)
 {
-	g_2DText->AddText("count to null", -1.0, 1.0, .05);
+	//Show fps on screen
+	string fps = std::to_string(g_Timer->GetFPS());
+	g_2DText->AddText("FPS: " + fps, -1.0, 1.0, .05);
 
 	// Clear the back buffer - choose a colour you like
 	float rgba_clear_colour[4] = { 0.0f, 0.1f, 0.1f, 1.0f };
@@ -691,7 +694,7 @@ void RenderFrame(void)
 	g_pSwapChain->Present(0, 0);
 }
 
-void CheckInputs(void)
+void CheckInputs(double time)
 {
 	g_Input->ReadInputStates();
 
@@ -700,35 +703,35 @@ void CheckInputs(void)
 
 	if (g_Input->IsKeyPressed(DIK_W))
 	{
-		g_cam->Forward(0.010f, g_rootNode);
+		g_cam->Forward(10.0f * time, g_rootNode);
 	}
 
 	if (g_Input->IsKeyPressed(DIK_S))
 	{
-		g_cam->Forward(-0.010f, g_rootNode);
+		g_cam->Forward(-10.0f * time, g_rootNode);
 	}
 	if (g_Input->IsKeyPressed(DIK_A))
 	{
-		g_cam->Strafe(-0.010f, g_rootNode);
+		g_cam->Strafe(-10.0f * time, g_rootNode);
 	}
 
 	if (g_Input->IsKeyPressed(DIK_D))
 	{
-		g_cam->Strafe(0.010f, g_rootNode);
+		g_cam->Strafe(10.0f * time, g_rootNode);
 	}
 
 	if (g_Input->IsKeyPressed(DIK_UP))
 	{
-		g_node2->IncYPos(0.10f, g_rootNode);
+		g_node2->IncYPos(10.0f * time, g_rootNode);
 	}
 	if (g_Input->IsKeyPressed(DIK_DOWN))
 	{
-		g_node2->IncYPos(-0.10f, g_rootNode);
+		g_node2->IncYPos(-10.0f * time, g_rootNode);
 	}
 		
 
 	if (g_Input->IsKeyPressed(DIK_RIGHT))
-		g_cam->RotateCamera(0.010f, 0.0f);
+		g_cam->RotateCamera(10.0f * time, 0.0f);
 
 	if (g_Input->IsKeyPressed(DIK_1))
 		g_cam->ChangeCameraType(CameraType::FirstPerson);
@@ -749,10 +752,10 @@ void CheckInputs(void)
 	}
 
 	if (g_Input->IsKeyPressed(DIK_J))
-		g_node3->MoveForward(0.01f, g_rootNode);
+		g_node3->MoveForward(0.01f * time, g_rootNode);
 
 	if (g_Input->IsKeyPressed(DIK_O))
-		g_node2->MoveForward(0.01f, g_rootNode);
+		g_node2->MoveForward(0.01f * time, g_rootNode);
 
 	if (g_Input->IsKeyPressed(DIK_I))
 		g_node2->LookAt_XZ(g_cam->GetX(), g_cam->GetZ());
@@ -781,4 +784,11 @@ void SetUpScene()
 	g_rootNode->AddChildNode(g_node2);
 	g_rootNode->AddChildNode(g_node3);
 
+}
+
+void UpdateScene(double time)
+{
+	CheckInputs(time);
+	g_cam->Update();
+	RenderFrame();
 }
