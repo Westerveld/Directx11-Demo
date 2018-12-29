@@ -356,6 +356,7 @@ void Model::SetCollisionType(CollisionType newType)
 		case CollisionType::Sphere:
 			CalculateModelCentrePoint();
 			CalculateBoudingSphereRadius();
+			
 			break;
 		case CollisionType::Box:
 			CalculateBoundingBox();
@@ -364,5 +365,6 @@ void Model::SetCollisionType(CollisionType newType)
 			break;
 
 	}
+	m_collisionType = newType;
 }
 #pragma endregion

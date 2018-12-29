@@ -107,7 +107,6 @@ void RenderFrame(void);
 HRESULT InitialiseGraphics(void);
 void CheckInputs();
 void SetUpScene();
-void UpdateCameraPosition();
 
 
 
@@ -586,19 +585,30 @@ HRESULT InitialiseGraphics()
 	g_Cube = new Model(g_pD3DDevice, g_pImmediateContext, g_lights);
 	
 	hr = g_Sphere->LoadObjModel((char*)"assets/Sphere.obj");
-	g_Sphere->LoadCustomShader((char*)"reflect_shader.hlsl", (char*)"ModelVS", (char*)"ModelPS");
-	g_Sphere->ChangeModelType(ModelType::Shiny);
 	if (FAILED(hr))
 	{
 		return hr;
 	}
+	hr = g_Sphere->LoadCustomShader((char*)"reflect_shader.hlsl", (char*)"ModelVS", (char*)"ModelPS");
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+	g_Sphere->ChangeModelType(ModelType::Shiny);
+	g_Sphere->SetCollisionType(CollisionType::Sphere);
 
 	hr = g_Plane->LoadObjModel((char*)"assets/plane.obj");
 	if (FAILED(hr))
 	{
 		return hr;
 	}
-	g_Plane->LoadDefaultShaders();
+	hr = g_Plane->LoadDefaultShaders();
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	g_Plane->SetCollisionType(CollisionType::Box);
 
 
 	g_brickSphere = new Model(g_pD3DDevice, g_pImmediateContext, g_lights);
@@ -607,9 +617,15 @@ HRESULT InitialiseGraphics()
 	{
 		return hr;
 	}
-	g_brickSphere->LoadDefaultShaders();
+	hr = g_brickSphere->LoadDefaultShaders();
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
 	g_brickSphere->SetSampler(g_pSampler0);
 	g_brickSphere->SetTexture(g_pBrickTexture);
+	g_brickSphere->SetCollisionType(CollisionType::Sphere);
 
 	g_Plane->SetSampler(g_pSampler0);
 	g_Plane->SetTexture(g_pBrickTexture);
@@ -701,7 +717,14 @@ void CheckInputs(void)
 		g_cam->Strafe(0.010f, g_rootNode);
 	}
 
-	if (g_Input->IsKeyPressed(DIK_LEFT))
+	if (g_Input->IsKeyPressed(DIK_UP))
+	{
+		g_node2->IncYPos(0.10f, g_rootNode);
+	}
+	if (g_Input->IsKeyPressed(DIK_DOWN))
+	{
+		g_node2->IncYPos(-0.10f, g_rootNode);
+	}
 		
 
 	if (g_Input->IsKeyPressed(DIK_RIGHT))

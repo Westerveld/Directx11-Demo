@@ -167,6 +167,7 @@ bool Scene_Node::CheckCollision(Scene_Node* compareTree, Scene_Node* objectTreeR
 		else if (m_model->GetCollisionType() == CollisionType::Box && compareTree->m_model->GetCollisionType() == CollisionType::Box)
 		{
 			xyz object1Size, object2Size;
+			object1Size = m_model->GetBoundingBoxSize();
 			object2Size = compareTree->m_model->GetBoundingBoxSize();
 
 			//Calculate min and max for each object
@@ -210,12 +211,18 @@ bool Scene_Node::CheckCollision(Scene_Node* compareTree, Scene_Node* objectTreeR
 			max.x = object1.x + size.x;
 			max.y = object1.y + size.y;
 			max.z = object1.z + size.z;
-
+			
+			float radius = compareTree->m_model->GetBoundingSphereRadius();
 			//Check the box against positions on the sphere
 
-			if (object2.x < min.x && object1)
+			if ((object2.x + radius) > min.x && 
+				(object2.x - radius) < max.x &&
+				(object2.y + radius) > min.y &&
+				(object2.y - radius) < max.y &&
+				(object2.z + radius) > min.z &&
+				(object2.z - radius) < max.z)
 			{
-
+				return true;
 			}
 
 		}
@@ -235,7 +242,16 @@ bool Scene_Node::CheckCollision(Scene_Node* compareTree, Scene_Node* objectTreeR
 			max.y = object2.y + size.y;
 			max.z = object2.z + size.z;
 
-			//Check the box against positons on the sphere
+			float radius = m_model->GetBoundingSphereRadius();
+			if ((object1.x + radius) > min.x &&
+				(object1.x - radius) < max.x &&
+				(object1.y + radius) > min.y &&
+				(object1.y - radius) < max.y &&
+				(object1.z - radius) > min.z &&
+				(object1.z + radius) < max.z)
+			{
+				return true;
+			}
 		}
 	}
 
