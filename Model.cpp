@@ -233,6 +233,7 @@ void Model::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection)
 	SHINYMODEL_CONSTANT_BUFFER sm_cbValue;
 	sm_cbValue.WorldView = (*world) * (*view);
 
+	
 	//Upload new values to buffer
 	m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, 0, &model_cbValues, 0, 0);
 
@@ -308,6 +309,37 @@ void Model::CalculateBoudingSphereRadius()
 	m_defRadius = m_boundingSphereRadius;
 
 }
+
+void Model::CalculateBoundingBox()
+{
+	float minX = 0, minY = 0, minZ = 0, maxX = 0, maxY = 0, maxZ = 0;
+
+	for (int i = 0; i < m_pObject->numverts; i++)
+	{
+		if (m_pObject->vertices[i].Pos.x < minX)
+			minX = m_pObject->vertices[i].Pos.x;
+		if (m_pObject->vertices[i].Pos.x > maxX)
+			maxX = m_pObject->vertices[i].Pos.x;
+
+		if (m_pObject->vertices[i].Pos.y < minY)
+			minY = m_pObject->vertices[i].Pos.y;
+		if (m_pObject->vertices[i].Pos.y > maxY)
+			maxY = m_pObject->vertices[i].Pos.y;
+
+		if (m_pObject->vertices[i].Pos.z < minZ)
+			minZ = m_pObject->vertices[i].Pos.z;
+		if (m_pObject->vertices[i].Pos.z > maxZ)
+			maxZ = m_pObject->vertices[i].Pos.z;
+	}
+
+	m_boundingBoxCentre.x = (minX + maxX) / 2;
+	m_boundingBoxCentre.y = (minY + maxY) / 2;
+	m_boundingBoxCentre.z = (minZ + maxZ) / 2;
+
+	m_boundingBoxSize.x = (maxX - minX) / 2;
+	m_boundingBoxSize.y = (maxY - minY) / 2;
+	m_boundingBoxSize.z = (maxZ - minZ) /2;
+}
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -315,5 +347,22 @@ void Model::CalculateBoudingSphereRadius()
 float Model::GetBoundingSphereRadius()
 {
 	return m_boundingSphereRadius;
+}
+
+void Model::SetCollisionType(CollisionType newType)
+{
+	switch (newType)
+	{
+		case CollisionType::Sphere:
+			CalculateModelCentrePoint();
+			CalculateBoudingSphereRadius();
+			break;
+		case CollisionType::Box:
+			CalculateBoundingBox();
+			break;
+		case CollisionType::Mesh:
+			break;
+
+	}
 }
 #pragma endregion

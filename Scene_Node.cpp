@@ -1,12 +1,10 @@
 #include "Scene_Node.h"
 
 
-
-
-Scene_Node::Scene_Node()
+Scene_Node::Scene_Node(string name)
 {
 	m_model = NULL;
-
+	m_name = name;
 	m_x = 0.0f;
 	m_y = 0.0f;
 	m_z = 0.0f;
@@ -100,9 +98,16 @@ void Scene_Node::UpdateCollisionTree(XMMATRIX* world, float scale)
 
 	if (m_model)
 	{
-		v = XMVectorSet(m_model->GetBoundingSphereX(), 
-			m_model->GetBoundingSphereY(), 
-			m_model->GetBoundingSphereZ(), 0.0);
+		if (m_model->GetCollisionType() == CollisionType::Sphere)
+		{
+			v = XMVectorSet(m_model->GetBoundingSphereX(),
+				m_model->GetBoundingSphereY(),
+				m_model->GetBoundingSphereZ(), 0.0);
+		}
+		else if (m_model->GetCollisionType() == CollisionType::Box)
+		{
+			v = XMVectorSet(m_model->GetBoundingBoxCentre().x, m_model->GetBoundingBoxCentre().y, m_model->GetBoundingBoxCentre().z, 0.0);
+		}
 	}
 	else
 	{
@@ -134,22 +139,97 @@ bool Scene_Node::CheckCollision(Scene_Node* compareTree, Scene_Node* objectTreeR
 	{
 		XMVECTOR v1 = GetWorldCentre();
 		XMVECTOR v2 = compareTree->GetWorldCentre();
-		XMVECTOR vDiff = v1 - v2;
 
-		float x1 = XMVectorGetX(v1);
-		float y1 = XMVectorGetY(v1);
-		float z1 = XMVectorGetZ(v1);
-		float x2 = XMVectorGetX(v2);
-		float y2 = XMVectorGetY(v2);
-		float z2 = XMVectorGetZ(v2);
+		xyz object1, object2;
 
-		float dx = x1 - x2;
-		float dy = y1 - y2;
-		float dz = z1 - z2;
+		object1.x = XMVectorGetX(v1);
+		object1.y = XMVectorGetY(v1);
+		object1.z = XMVectorGetZ(v1);
 
-		if (sqrt(dx*dx + dy * dy + dz * dz) < (compareTree->m_model->GetBoundingSphereRadius() * compareTree->m_worldScale) + (this->m_model->GetBoundingSphereRadius() * m_worldScale))
+		object2.x = XMVectorGetX(v2);
+		object2.y = XMVectorGetY(v2);
+		object2.z = XMVectorGetZ(v2);
+
+		//Sphere on Sphere collision
+		if (m_model->GetCollisionType() == CollisionType::Sphere && compareTree->m_model->GetCollisionType() == CollisionType::Sphere)
 		{
-			return true;
+
+			float dx = object1.x - object2.x;
+			float dy = object1.y - object2.y;
+			float dz = object1.z - object2.z;
+
+			if (sqrt(dx*dx + dy * dy + dz * dz) < (compareTree->m_model->GetBoundingSphereRadius() * compareTree->m_worldScale) + (this->m_model->GetBoundingSphereRadius() * m_worldScale))
+			{
+				return true;
+			}
+		}
+		//Box on Box collision
+		else if (m_model->GetCollisionType() == CollisionType::Box && compareTree->m_model->GetCollisionType() == CollisionType::Box)
+		{
+			xyz object1Size, object2Size;
+			object2Size = compareTree->m_model->GetBoundingBoxSize();
+
+			//Calculate min and max for each object
+			xyz min1, max1, min2, max2;
+			
+			min1.x = object1.x - object1Size.x;
+			min1.y = object1.y - object1Size.y;
+			min1.z = object1.z - object1Size.z;
+			
+			max1.x = object1.x + object1Size.x;
+			max1.y = object1.y + object1Size.y;
+			max1.z = object1.z + object1Size.z;
+
+			min2.x = object2.x - object2Size.x;
+			min2.y = object2.y - object2Size.y;
+			min2.z = object2.z - object2Size.z;
+
+			max2.x = object2.x + object2Size.x;
+			max2.y = object2.y + object2Size.y;
+			max2.z = object2.z + object2Size.z;
+			
+			if (max1.x > min2.x && min1.x < max2.x &&
+				max1.y > min2.y && min2.y < max2.y &&
+				max1.z > min2.z && min2.z < max2.z)
+			{
+				return true;
+			}
+		}
+		//Box on Sphere collision
+		else if (m_model->GetCollisionType() == CollisionType::Box && compareTree->m_model->GetCollisionType() == CollisionType::Sphere)
+		{
+			//Calculate min and max of box
+			xyz size;
+			size = m_model->GetBoundingBoxSize();
+			xyz min, max;
+
+			min.x = object1.x - size.x;
+			min.y = object1.y - size.y;
+			min.z = object1.z - size.z;
+
+			max.x = object1.x + size.x;
+			max.y = object1.y + size.y;
+			max.z = object1.z + size.z;
+
+			//Check the box against positions on the sphere
+		}
+		//Sphere on Box collision
+		else if (m_model->GetCollisionType() == CollisionType::Sphere && compareTree->m_model->GetCollisionType() == CollisionType::Box)
+		{
+			//Calculate min and max of box
+			xyz size;
+			size = compareTree->m_model->GetBoundingBoxSize();
+			xyz min, max;
+
+			min.x = object2.x - size.x;
+			min.y = object2.y - size.y;
+			min.z = object2.z - size.z;
+
+			max.x = object2.x + size.x;
+			max.y = object2.y + size.y;
+			max.z = object2.z + size.z;
+
+			//Check the box against positons on the sphere
 		}
 	}
 

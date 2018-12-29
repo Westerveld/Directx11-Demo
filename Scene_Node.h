@@ -7,6 +7,7 @@ class Scene_Node
 private:
 	Model*					m_model;
 	vector<Scene_Node*>		m_children;
+	string					m_name;
 
 	float					m_x, m_y, m_z;
 	float					m_Xangle, m_Yangle, m_Zangle;
@@ -14,7 +15,7 @@ private:
 	float					m_worldCentreX, m_worldCentreY, m_worldCentreZ;
 	XMMATRIX				m_localWorldMatrix;
 public:
-	Scene_Node();
+	Scene_Node(string name);
 	~Scene_Node();
 
 	void AddChildNode(Scene_Node* node);

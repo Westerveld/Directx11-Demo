@@ -61,13 +61,21 @@ void Camera::RotateCamera(float yawDegrees, float pitchDegrees)
 
 
 //Move the camera in the direction of distance
-void Camera::Forward(float distance)
+void Camera::Forward(float distance, Scene_Node* root)
 {
+	XMMATRIX identity;
+	identity = XMMatrixIdentity();
+
 	switch (m_camType)
 	{
 	case CameraType::FirstPerson:
-		m_x += distance * m_dx;	
-		m_z += distance * m_dz;
+		root->UpdateCollisionTree(&identity, 1.0f);
+		if (!root->CheckCollisionRay(m_x, m_y, m_z, (distance *m_dx), (distance * m_dy), (distance * m_dz)))
+		{
+			m_x += distance * m_dx;
+			m_z += distance * m_dz;
+		}
+
 		break;
 	case CameraType::FreeLook:
 		m_x += (XMVectorGetX(m_forward) * distance);
@@ -85,6 +93,7 @@ void Camera::Up(float distance)
 	switch (m_camType)
 	{
 	case CameraType::FirstPerson:
+		
 		m_y += distance;
 		break;
 	case CameraType::FreeLook:
@@ -99,13 +108,19 @@ void Camera::Up(float distance)
 }
 
 //Strafes the camera left or right
-void Camera::Strafe(float distance)
+void Camera::Strafe(float distance, Scene_Node* root)
 {
+	XMMATRIX identity;
+	identity = XMMatrixIdentity();
 	switch (m_camType)
 	{
 	case CameraType::FirstPerson:
-		m_x += XMVectorGetX(m_right) * -distance;
-		m_z += XMVectorGetZ(m_right) * -distance;
+		root->UpdateCollisionTree(&identity, 1.0f);
+		if (!root->CheckCollisionRay(m_x, m_y, m_z, (XMVectorGetX(m_right) * -distance), m_dy, (XMVectorGetY(m_right) * -distance)))
+		{
+			m_x += XMVectorGetX(m_right) * -distance;
+			m_z += XMVectorGetZ(m_right) * -distance;
+		}
 
 		break;
 	case CameraType::FreeLook:
@@ -126,8 +141,6 @@ XMMATRIX Camera::GetViewMatrix()
 
 void Camera::Update()
 {
-
-
 	if(m_camType == CameraType::FirstPerson)
 	{
 

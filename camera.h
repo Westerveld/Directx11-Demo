@@ -21,9 +21,9 @@ public:
 	Camera(float x, float y, float z, float camera_rotation);
 	~Camera();
 	void RotateCamera(float yawDegrees, float pitchDegrees);
-	void Forward(float distance);
+	void Forward(float distance, Scene_Node* root);
 	void Up(float distance);
-	void Strafe(float distance);
+	void Strafe(float distance, Scene_Node* root);
 	void Update(void);
 	XMMATRIX GetViewMatrix();
 	void ChangeCameraType(CameraType newType) { m_camType = newType; }

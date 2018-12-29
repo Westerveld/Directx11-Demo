@@ -18,6 +18,7 @@ struct SHINYMODEL_CONSTANT_BUFFER
 
 
 enum ModelType{Normal, Shiny};
+enum CollisionType{Sphere, Box, Mesh};
 class Model
 {
 private:
@@ -37,11 +38,14 @@ private:
 	LightManager*				m_lights;
 
 	float						m_boundingSphereCentreX, m_boundingSphereCentreY, m_boundingSphereCentreZ, m_boundingSphereRadius, m_defRadius;
-
+	xyz							m_boundingBoxCentre, m_boundingBoxSize;
 	void						CalculateModelCentrePoint();
 	void						CalculateBoudingSphereRadius();
 
+	void						CalculateBoundingBox();
+	
 	ModelType					m_type;
+	CollisionType				m_collisionType;
 public:
 	Model(ID3D11Device* device, ID3D11DeviceContext* deviceContext, LightManager* lights);
 	~Model();
@@ -68,5 +72,13 @@ public:
 
 	void ChangeModelType(ModelType newType) { m_type = newType; }
 	ObjFileModel* GetModel(void) { return m_pObject; }
+
+	void SetCollisionType(CollisionType newType);
+
+	CollisionType GetCollisionType() { return m_collisionType; }
+
+	xyz GetBoundingBoxSize() { return m_boundingBoxSize; }
+	xyz GetBoundingBoxCentre() { return m_boundingBoxCentre; }
+
 };
 
