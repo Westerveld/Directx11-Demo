@@ -138,3 +138,11 @@ xyz maths::SetXYZ(float x, float y, float z)
 	newXYZ.z = z;
 	return newXYZ;
 }
+
+xyz maths::Scale(xyz vector, float scalar)
+{
+	vector.x *= scalar;
+	vector.y *= scalar;
+	vector.z *= scalar;
+	return vector;
+}

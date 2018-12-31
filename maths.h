@@ -22,5 +22,7 @@ public:
 	static bool InTriangle(xyz* t0, xyz* t1, xyz* t2, xyz* point);
 	static int Sign(float number);
 	static xyz SetXYZ(float x, float y, float z);
+
+	static xyz Scale(xyz vector, float scalar);
 };
 

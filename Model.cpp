@@ -332,13 +332,13 @@ void Model::CalculateBoundingBox()
 			maxZ = m_pObject->vertices[i].Pos.z;
 	}
 
-	m_boundingBoxCentre.x = (minX + maxX) / 2;
-	m_boundingBoxCentre.y = (minY + maxY) / 2;
-	m_boundingBoxCentre.z = (minZ + maxZ) / 2;
+	m_boundingBoxCentre.x = (minX + maxX) * 0.5;
+	m_boundingBoxCentre.y = (minY + maxY) * 0.5;
+	m_boundingBoxCentre.z = (minZ + maxZ) * 0.5;
 
-	m_boundingBoxSize.x = (maxX - minX) / 2;
-	m_boundingBoxSize.y = (maxY - minY) / 2;
-	m_boundingBoxSize.z = (maxZ - minZ) /2;
+	m_boundingBoxSize.x = (maxX - minX) * 0.5;
+	m_boundingBoxSize.y = (maxY - minY) * 0.5;
+	m_boundingBoxSize.z = (maxZ - minZ) * 0.5;
 }
 #pragma endregion
 
@@ -356,7 +356,6 @@ void Model::SetCollisionType(CollisionType newType)
 		case CollisionType::Sphere:
 			CalculateModelCentrePoint();
 			CalculateBoudingSphereRadius();
-			
 			break;
 		case CollisionType::Box:
 			CalculateBoundingBox();

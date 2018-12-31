@@ -191,7 +191,8 @@ void GameManager::LoadLevel (char* textFile)
 	m_pRootNode = new Scene_Node("Root");
 	m_pWall = new Scene_Node("Walls_Root");
 	m_pFloor = new Scene_Node("Floor");
-
+	m_pFloor->SetModel(m_pPlaneModel);
+	m_pFloor->SetYPos(-2.5f);
 
 	if (textFile == NULL)
 	{
@@ -224,8 +225,10 @@ void GameManager::LoadLevel (char* textFile)
 				{
 					Scene_Node* wall = new Scene_Node("Wall");
 					wall->SetModel(m_pWallModel);
-					wall->SetXPos(j);
-					wall->SetZPos(i);
+					wall->SetScale(0.2f);
+					wall->SetXPos(j*6);
+					wall->SetYPos(-2.5f);
+					wall->SetZPos(i*6);
 					m_pWall->AddChildNode(wall);
 					m_pWalls.push_back(wall);
 				}
@@ -236,17 +239,24 @@ void GameManager::LoadLevel (char* textFile)
 					m_pCameraNode = new Scene_Node("Camera");
 					m_pCameraNode->SetModel(m_pCubeModel);
 					m_pCameraNode->SetScale(0.3f);
-					m_pCam->SetPosition(j, 0, i);
+					m_pCam->SetPosition(j*6, 0, i*6);
 					UpdateCameraNode();
 					m_pRootNode->AddChildNode(m_pCameraNode);
+					XMMATRIX identity = XMMatrixIdentity();
+
+					m_pRootNode->UpdateCollisionTree(&identity, 1.0f);
 				}
 				break;
 			}
 		}
 	}
+	m_pFloor->SetXPos(m_pLevel.size() * 0.5f);
+	m_pFloor->SetZPos(m_pLevel.size() * 0.5f);
 	m_pRootNode->AddChildNode(m_pFloor);
 	m_pRootNode->AddChildNode(m_pWall);
 	m_pRootNode->AddChildNode(m_pCameraNode);
+
+
 }
 
 
