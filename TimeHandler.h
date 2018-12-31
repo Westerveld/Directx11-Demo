@@ -7,7 +7,7 @@
 #include <xnamath.h>
 
 
-class Timer
+class TimeHandler
 {
 private:
 	double		m_countsPerSecond, m_frameTime;
@@ -16,8 +16,8 @@ private:
 	int			m_frameCount, m_fps;
 
 public:
-	Timer();
-	~Timer();
+	TimeHandler();
+	~TimeHandler();
 	void StartTimer();
 	void UpdateTimer();
 	double GetTime();

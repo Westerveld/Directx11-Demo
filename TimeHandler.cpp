@@ -1,8 +1,8 @@
-#include "Timer.h"
+#include "TimeHandler.h"
 
 
 
-Timer::Timer()
+TimeHandler::TimeHandler()
 {
 	m_countsPerSecond = 0.0;
 	m_counterStart = 0;
@@ -12,11 +12,11 @@ Timer::Timer()
 }
 
 
-Timer::~Timer()
+TimeHandler::~TimeHandler()
 {
 }
 
-void Timer::StartTimer()
+void TimeHandler::StartTimer()
 {
 	LARGE_INTEGER frequencyCount;
 	QueryPerformanceFrequency(&frequencyCount);
@@ -27,7 +27,7 @@ void Timer::StartTimer()
 	m_counterStart = frequencyCount.QuadPart;
 }
 
-void Timer::UpdateTimer()
+void TimeHandler::UpdateTimer()
 {
 	m_frameCount++;
 	if (GetTime() > 1.0f)
@@ -39,14 +39,14 @@ void Timer::UpdateTimer()
 
 }
 
-double Timer::GetTime()
+double TimeHandler::GetTime()
 {
 	LARGE_INTEGER currentTime;
 	QueryPerformanceCounter(&currentTime);
 	return double(currentTime.QuadPart - m_counterStart) / m_countsPerSecond;
 }
 
-double Timer::GetFrameTime()
+double TimeHandler::GetFrameTime()
 {
 	LARGE_INTEGER currentTime;
 	__int64 tickCount;

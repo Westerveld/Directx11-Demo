@@ -39,12 +39,13 @@
     <ClCompile Include="Scene_Node.cpp" />
     <ClCompile Include="SkyBox.cpp" />
     <ClCompile Include="text2D.cpp" />
-    <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="TimeHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
     <ClInclude Include="InputHandler.h" />
     <ClInclude Include="LightManager.h" />
+    <ClInclude Include="main.h" />
     <ClInclude Include="maths.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="objfilemodel.h" />
@@ -53,7 +54,7 @@
     <ClInclude Include="Scene_Node.h" />
     <ClInclude Include="SkyBox.h" />
     <ClInclude Include="text2D.h" />
-    <ClInclude Include="Timer.h" />
+    <ClInclude Include="TimeHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="model_shader.hlsl">

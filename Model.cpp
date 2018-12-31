@@ -265,7 +265,7 @@ void Model::CalculateModelCentrePoint()
 {
 	float minX = 0, minY = 0, minZ = 0, maxX = 0, maxY = 0, maxZ = 0;
 
-	for (int i = 0; i < m_pObject->numverts; i++)
+	for (unsigned int i = 0; i < m_pObject->numverts; i++)
 	{
 		if (m_pObject->vertices[i].Pos.x < minX)
 			minX = m_pObject->vertices[i].Pos.x;
@@ -292,7 +292,7 @@ void Model::CalculateBoudingSphereRadius()
 {
 	float biggestDistFromCentre = 0;
 
-	for (int i = 0; i < m_pObject->numverts; i++)
+	for (unsigned int i = 0; i < m_pObject->numverts; i++)
 	{
 		if ((m_boundingSphereCentreX + m_pObject->vertices[i].Pos.x) > (m_boundingSphereCentreX + biggestDistFromCentre))
 			biggestDistFromCentre = m_pObject->vertices[i].Pos.x;
@@ -314,7 +314,7 @@ void Model::CalculateBoundingBox()
 {
 	float minX = 0, minY = 0, minZ = 0, maxX = 0, maxY = 0, maxZ = 0;
 
-	for (int i = 0; i < m_pObject->numverts; i++)
+	for (unsigned int i = 0; i < m_pObject->numverts; i++)
 	{
 		if (m_pObject->vertices[i].Pos.x < minX)
 			minX = m_pObject->vertices[i].Pos.x;

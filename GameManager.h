@@ -1,69 +1,79 @@
 #pragma once
-#include <d3d11.h>
-#include <dxgi.h>
-#include <d3dx11.h>
-#include <windows.h>
-#include <dxerr.h>
-#include <xnamath.h>
-
-#include "Scene_Node.h"
-#include "camera.h"
-#include "maths.h"
-#include "Model.h"
-#include "SkyBox.h"
-#include "text2D.h"
-#include "Timer.h"
-#include "LightManager.h"
-#include "ParticleFactory.h"
-
-#include <iostream>
-#include <deque>
+#include "main.h"
 
 class GameManager
 {
 private:
-	ID3D11Device*					g_pD3DDevice;
-	ID3D11DeviceContext*			g_pImmediateContext;
-	IDXGISwapChain*					g_pSwapChain;
-	ID3D11RenderTargetView*			g_pBackBufferRTView;
+	ID3D11Device*					m_pD3DDevice;
+	ID3D11DeviceContext*			m_pImmediateContext;
+	IDXGISwapChain*					m_pSwapChain;
+	ID3D11RenderTargetView*			m_pBackBufferRTView;
+	ID3D11DepthStencilView*			m_pZBuffer;
 
-	ID3D11ShaderResourceView*		g_pTexture0;
-	ID3D11ShaderResourceView*		g_pTextureBrick;
-	ID3D11ShaderResourceView*		g_pTexureSkyBox;
-	ID3D11SamplerState*				g_pSampler0;
-	
-	
-	LightManager*					g_pLights;
-	Camera*							g_pCam;
+	ID3D11ShaderResourceView*		m_pTexture0;
+	ID3D11ShaderResourceView*		m_pTextureBrick;
+	ID3D11ShaderResourceView*		m_pTextureSkyBox;
+	ID3D11ShaderResourceView*		m_pTextureFloor;
 
-	SkyBox*							g_pSkyBox;
-	Timer*							g_pTimer;
-	Text2D*							g_pText;
+	ID3D11SamplerState*				m_pSampler0;
 
+	class TimeHandler						*m_pTimer;
+	LightManager*					m_pLights;
+	Camera*							m_pCam;
+
+	SkyBox*							m_pSkyBox;
+	Text2D*							m_pText;
+	ParticleFactory*				m_pParticles;
+	InputHandler*					m_pInput;
+
+	HINSTANCE*						m_phInst;
+	HWND*							m_phWnd;
 #pragma region Models
-	Model*							g_pSphere;
-	Model*							g_pPlane;
-	Model*							g_pCube;
-	Model*							g_pWall;
+	Model*							m_pSphereModel;
+	Model*							m_pPlaneModel;
+	Model*							m_pCubeModel;
+	Model*							m_pWallModel;
 #pragma endregion
 
 #pragma region Level Objects
-	Scene_Node*						g_pRootNode;
-	Scene_Node*						g_pFloor;
+	Scene_Node*						m_pRootNode;
+	Scene_Node*						m_pFloor;
+	Scene_Node*						m_pWall;
+	std::vector<Scene_Node*>		m_pWalls;
+	Scene_Node*						m_pSphere;
+	Scene_Node*						m_pCameraNode;
 #pragma endregion
+	float							m_pScreenHeight, m_pScreenWidth;
 
-	float							g_pScreenHeight, g_pScreenWidth;
+	void							UpdateCameraNode();
+	std::vector<std::string>		m_pLevel;
 public:
-	GameManager(float height, float width);
+	GameManager(float height, float width, HWND* hWnd, HINSTANCE* hInst);
 	~GameManager();
 	void LoadLevel(char* textFile);
 	void Update();
 	void Render();
-	HRESULT InitialiseGraphics(ID3D11Device* device, ID3D11DeviceContext* context, IDXGISwapChain* swapChain, ID3D11RenderTargetView* g_pBackBufferRTView);
-
+	HRESULT InitialiseGraphics();
+	void	CheckInputs();
 #pragma region Getters and Setters
-	void SetScreenHeight(float height) { g_pScreenHeight = height; }
-	void SetScreenWidth(float width) { g_pScreenWidth = width; }
+	void					SetScreenHeight(float height) { m_pScreenHeight = height; }
+	void					SetScreenWidth(float width) { m_pScreenWidth = width; }
+
+	IDXGISwapChain*			GetSwapChain() { return m_pSwapChain; }
+	void					SetSwapChain(IDXGISwapChain* swapChain) { m_pSwapChain = swapChain; }
+
+	ID3D11DeviceContext*	GetImmediateContext() { return m_pImmediateContext; }
+	void					SetImmediateContext(ID3D11DeviceContext* context) { m_pImmediateContext = context; }
+
+	ID3D11Device*			GetDevice() { return m_pD3DDevice; }
+	void					SetDevice(ID3D11Device* device) { m_pD3DDevice = device; }
+
+	ID3D11RenderTargetView*	GetRenderTarget() { return m_pBackBufferRTView; }
+	void					SetRenderTarget(ID3D11RenderTargetView* target) { m_pBackBufferRTView = target; }
+
+	ID3D11DepthStencilView*	GetZBuffer() { return m_pZBuffer; }
+	void					SetZBuffer(ID3D11DepthStencilView* zBuffer) { m_pZBuffer = zBuffer; }
+	
 #pragma endregion
 };
 

@@ -21,9 +21,9 @@ public:
 	Camera(float x, float y, float z, float camera_rotation);
 	~Camera();
 	void RotateCamera(float yawDegrees, float pitchDegrees);
-	void Forward(float distance, Scene_Node* root);
+	void Forward(float distance);
 	void Up(float distance);
-	void Strafe(float distance, Scene_Node* root);
+	void Strafe(float distance);
 	void Update(void);
 	XMMATRIX GetViewMatrix();
 	void ChangeCameraType(CameraType newType) { m_camType = newType; }
@@ -39,6 +39,7 @@ public:
 	float GetdZ() { return XMVectorGetZ(m_target); }
 
 	XMFLOAT3 GetPosition() { return XMFLOAT3(m_x, m_y, m_z); }
+	void SetPosition(float x, float y, float z);
 
 	void SetTarget(Scene_Node* target) { m_followTarget = target; }
 };

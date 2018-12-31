@@ -21,7 +21,7 @@ SkyBox::~SkyBox()
 	if (m_pImmediateContext) m_pImmediateContext->Release();
 }
 
-HRESULT SkyBox::CreateSkybox()
+HRESULT SkyBox::CreateSkybox(ID3D11ShaderResourceView* texture)
 {
 	HRESULT hr = S_OK;
 
@@ -213,11 +213,12 @@ HRESULT SkyBox::CreateSkybox()
 
 	m_pImmediateContext->IASetInputLayout(m_pInputLayout);
 
-	hr = D3DX11CreateShaderResourceViewFromFile(m_pD3DDevice,
-		"assets/skybox_mountain.dds", NULL, NULL,
-		&m_pTexture, NULL);
+	m_pTexture = texture;
 	if (FAILED(hr))
 		return hr;
+
+	return S_OK;
+
 }
 
 

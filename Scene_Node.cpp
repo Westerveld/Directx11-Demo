@@ -37,7 +37,7 @@ void Scene_Node::AddChildNode(Scene_Node* node)
 
 bool Scene_Node::DetachNode(Scene_Node* node)
 {
-	for (int i = 0; i < m_children.size(); i++)
+	for (size_t i = 0; i < m_children.size(); i++)
 	{
 		if (node == m_children[i])
 		{
@@ -71,7 +71,7 @@ void Scene_Node::Execute(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection)
 	}
 
 
-	for (int i = 0; i < m_children.size(); i++)
+	for (size_t i = 0; i < m_children.size(); i++)
 	{
 		m_children[i]->Execute(&local_world, view, projection);
 	}
@@ -119,7 +119,7 @@ void Scene_Node::UpdateCollisionTree(XMMATRIX* world, float scale)
 	m_worldCentreY = XMVectorGetY(v);
 	m_worldCentreZ = XMVectorGetZ(v);
 
-	for (int i = 0; i < m_children.size(); i++)
+	for (size_t i = 0; i < m_children.size(); i++)
 	{
 		m_children[i]->UpdateCollisionTree(&m_localWorldMatrix, m_worldScale);
 	}
@@ -254,13 +254,13 @@ bool Scene_Node::CheckCollision(Scene_Node* compareTree, Scene_Node* objectTreeR
 		}
 	}
 
-	for (int i = 0; i < compareTree->m_children.size(); i++)
+	for (size_t i = 0; i < compareTree->m_children.size(); i++)
 	{
 		if (CheckCollision(compareTree->m_children[i], objectTreeRoot) == true)
 			return true;
 	}
 
-	for (int i = 0; i < m_children.size(); i++)
+	for (size_t i = 0; i < m_children.size(); i++)
 	{
 		if (m_children[i]->CheckCollision(compareTree, objectTreeRoot) == true)
 			return true;
@@ -286,7 +286,7 @@ bool Scene_Node::IncXPos(float value, Scene_Node* rootNode)
 	XMMATRIX identity = XMMatrixIdentity();
 
 	//Update the collision tree
-	rootNode->UpdateCollisionTree(&identity, 1.0);
+	rootNode->UpdateCollisionTree(&identity, 1.0f);
 
 	//Check for a collision
 	if (CheckCollision(rootNode) == true)
@@ -307,7 +307,7 @@ bool Scene_Node::IncYPos(float value, Scene_Node* rootNode)
 	XMMATRIX identity = XMMatrixIdentity();
 
 	//Update the collision tree
-	rootNode->UpdateCollisionTree(&identity, 1.0);
+	rootNode->UpdateCollisionTree(&identity, 1.0f);
 
 	//Check for a collision
 	if (CheckCollision(rootNode) == true)
@@ -351,12 +351,12 @@ bool Scene_Node::MoveForward(float value , Scene_Node* rootNode)
 	old_z = m_z;
 
 	//Set  new values;
-	m_x += sin(m_Yangle * (XM_PI / 180.0)) * value;
-	m_z += cos(m_Yangle * (XM_PI / 180.0)) * value;
+	m_x += sin(m_Yangle * (XM_PI / 180.0f)) * value;
+	m_z += cos(m_Yangle * (XM_PI / 180.0f)) * value;
 
 	XMMATRIX identity = XMMatrixIdentity();
 
-	rootNode->UpdateCollisionTree(&identity, 1.0);
+	rootNode->UpdateCollisionTree(&identity, 1.0f);
 
 	if (CheckCollision(rootNode) == true)
 	{
@@ -380,13 +380,13 @@ bool Scene_Node::MoveForwardXYZ(float value, Scene_Node* rootNode)
 	old_z = m_z;
 
 	//Set  new values;
-	m_x += sin(m_Yangle * (XM_PI / 180.0)) * value;
-	m_y += -sin(m_Xangle * (XM_PI / 180.0)) * value;
-	m_z += cos(m_Yangle * (XM_PI / 180.0)) * value;
+	m_x += sin(m_Yangle * (XM_PI / 180.0f)) * value;
+	m_y += -sin(m_Xangle * (XM_PI / 180.0f)) * value;
+	m_z += cos(m_Yangle * (XM_PI / 180.0f)) * value;
 
 	XMMATRIX identity = XMMatrixIdentity();
 
-	rootNode->UpdateCollisionTree(&identity, 1.0);
+	rootNode->UpdateCollisionTree(&identity, 1.0f);
 
 	if (CheckCollision(rootNode) == true)
 	{
@@ -405,7 +405,7 @@ void Scene_Node::LookAt_XZ(float x, float z)
 	float dx, dz;
 	dx = x - m_x;
 	dz = z - m_z;
-	m_Yangle = atan2(dx, dz) * (180.0 / XM_PI);
+	m_Yangle = atan2(dx, dz) * (180.0f / XM_PI);
 }
 
 void Scene_Node::LookAt_XYZ(float x, float y, float z)
@@ -416,8 +416,8 @@ void Scene_Node::LookAt_XYZ(float x, float y, float z)
 	dy = y - m_y;
 	dz = z - m_z;
 
-	m_Xangle = -atan2(dy, dx - dz) * (180.0 / XM_PI);
-	m_Yangle = atan2(dx, dz) * (180.0 / XM_PI);
+	m_Xangle = -atan2(dy, dx - dz) * (180.0f / XM_PI);
+	m_Yangle = atan2(dx, dz) * (180.0f / XM_PI);
 }
 #pragma endregion
 
@@ -446,7 +446,7 @@ bool Scene_Node::CheckCollisionRay(float x, float y, float z, float rx, float ry
 			//Get the object model file
 			ObjFileModel* pObject = m_model->GetModel();
 			//Cycle through the vertices
-			for (int i = 0; i < pObject->numverts; i+=3)
+			for (unsigned int i = 0; i < pObject->numverts; i+=3)
 			{
 				//Store the three vertices
 				XMVECTOR p1 = XMVectorSet(pObject->vertices[i].Pos.x,
@@ -500,7 +500,7 @@ bool Scene_Node::CheckCollisionRay(float x, float y, float z, float rx, float ry
 		}
 	}
 
-	for (int i = 0; i < m_children.size(); i++)
+	for (size_t i = 0; i < m_children.size(); i++)
 	{
 		//Check through the children of the node
 		if (m_children[i]->CheckCollisionRay(x, y, z, rx, ry, rz))

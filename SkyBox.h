@@ -46,7 +46,7 @@ public:
 	SkyBox(ID3D11Device* device, ID3D11DeviceContext* context);
 	~SkyBox();
 
-	HRESULT CreateSkybox();
+	HRESULT CreateSkybox(ID3D11ShaderResourceView* texture);
 
 	void RenderSkyBox(XMMATRIX* view, XMMATRIX* projection, Camera* cam);
 

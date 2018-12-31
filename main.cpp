@@ -1,22 +1,4 @@
-//The #include order is important
-#include <d3d11.h>
-#include <dxgi.h>
-#include <d3dx11.h>
-#include <windows.h>
-#include <dxerr.h>
-#include <xnamath.h>
-
-#include <list>
-#include <string>
-#include "camera.h"
-#include "text2D.h"
-#include "Model.h"
-#include "InputHandler.h"
-#include "SkyBox.h"
-#include "ParticleFactory.h"
-#include "Scene_Node.h"
-#include "maths.h"
-#include "GameManager.h"
+#include "main.h"
 
 //////////////////////////////////////////////////////////////////////////////////////
 //	Global Variables
@@ -24,56 +6,15 @@
 HINSTANCE	g_hInst = NULL;
 HWND		g_hWnd = NULL;
 
+
 // Rename for each tutorial – This will appear in the title bar of the window
 char		g_TutorialName[100] = "EB AE02\0";
 
 D3D_DRIVER_TYPE         g_driverType = D3D_DRIVER_TYPE_NULL;
 D3D_FEATURE_LEVEL       g_featureLevel = D3D_FEATURE_LEVEL_11_0;
-ID3D11Device*           g_pD3DDevice = NULL;
-ID3D11DeviceContext*    g_pImmediateContext = NULL;
-IDXGISwapChain*         g_pSwapChain = NULL;
-ID3D11RenderTargetView* g_pBackBufferRTView = NULL;
-
-ID3D11DepthStencilView* g_pZBuffer; //Tutorial 06-01b
-ID3D11ShaderResourceView* g_pBrickTexture; //Tutorial 08-01
-ID3D11ShaderResourceView* g_pSkyBoxTexture;
-ID3D11SamplerState*		g_pSampler0; //Tutorial 08-01
-
-
-Camera*					g_cam;
-maths*					g_maths;
-Text2D*					g_2DText;
-LightManager*			g_lights;
-Model*					g_Sphere;
-Model*					g_brickSphere;
-Model*					g_Plane;
-Model*					g_Cube;
-SkyBox*					g_SkyBox;
-ParticleFactory*		g_Particles;
-
-Scene_Node*				g_rootNode;
-Scene_Node*				g_node1;
-Scene_Node*				g_node2;
-Scene_Node*				g_node3;
-
-InputHandler*			g_Input;
-Timer*					g_pTimer;
 
 GameManager*			g_pGameManager;
 
-//Define vertex structure
-struct POS_COL_TEX_NORM_VERTEX //This will be added to and renamed in future tutorials
-{
-	XMFLOAT3 pos;
-	XMFLOAT4 Col;
-	XMFLOAT2 Texture0;
-	XMFLOAT3 Normal;
-};
-
-
-
-float screenWidth; 
-float screenHeight;
 
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -83,12 +24,6 @@ HRESULT InitialiseWindow(HINSTANCE hInstance, int nCmdShow);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 HRESULT InitialiseD3D();
 void ShutdownD3D();
-void UpdateScene(double time);
-void RenderFrame(void);
-HRESULT InitialiseGraphics(void);
-void CheckInputs(double time);
-void SetUpScene();
-
 
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -105,25 +40,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		DXTRACE_MSG("Failed to create Window");
 		return 0;
 	}
-	g_Input = new InputHandler(&g_hWnd, &g_hInst);
-	if (FAILED(g_Input->InitialiseKeyboardInput()))
-	{
-		DXTRACE_MSG("Failed to initialise input");
-		return 0;
-	}
 
 	if (FAILED(InitialiseD3D()))
 	{
 		DXTRACE_MSG("Failed to create Device");
 		return 0;
 	}
-	g_pGameManager = new GameManager(screenHeight, screenWidth);
-	if (FAILED(g_pGameManager->InitialiseGraphics(g_pD3DDevice, g_pImmediateContext, g_pSwapChain, g_pBackBufferRTView)))
+	if (FAILED(g_pGameManager->InitialiseGraphics()))
 	{
 		DXTRACE_MSG("Failed to initialise graphics");
 		return 0;
 	}
 
+	g_pGameManager->LoadLevel("assets/Levels/1.lvl");
 
 	// Main message loop
 	MSG msg = { 0 };
@@ -137,9 +66,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 		else
 		{
-			
-			
-			g_pGameManager->Update();
+			if (g_pGameManager)
+			{
+				g_pGameManager->CheckInputs();
+				g_pGameManager->Update();
+				g_pGameManager->Render();
+			}
 		}
 	}
 
@@ -202,74 +134,81 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		PostQuitMessage(0);
 		break;
 	case WM_SIZE:
-		if (g_pSwapChain)
+		if (g_pGameManager != NULL)
 		{
-			g_pImmediateContext->OMSetRenderTargets(0, 0, 0);
-			
-			//Release all outstanding references to the swap chain's buffers.
-			g_pBackBufferRTView->Release();
-
-			g_pZBuffer->Release();
-
-			HRESULT hr;
-			//Preserve the existing buffer count and format.
-			//Automatically choose the width and height to match the client rect
-			hr = g_pSwapChain->ResizeBuffers(0, LOWORD(lParam), HIWORD(lParam), DXGI_FORMAT_UNKNOWN, 0);
-
-			// Get buffer and create new render-target-view
-			ID3D11Texture2D* pBuffer;
-			hr = g_pSwapChain->GetBuffer(0, _uuidof(ID3D11Texture2D), (void**)&pBuffer);
-
-			hr = g_pD3DDevice->CreateRenderTargetView(pBuffer, NULL, &g_pBackBufferRTView);
-			pBuffer->Release();
-
-
-			// Create Z buffer texture
-			D3D11_TEXTURE2D_DESC tex2dDesc;
-			ZeroMemory(&tex2dDesc, sizeof(tex2dDesc));
-
-			tex2dDesc.Width = LOWORD(lParam);
-			tex2dDesc.Height = HIWORD(lParam);
-			tex2dDesc.ArraySize = 1;
-			tex2dDesc.MipLevels = 1;
-			tex2dDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-			tex2dDesc.SampleDesc.Count = 1;
-			tex2dDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-			tex2dDesc.Usage = D3D11_USAGE_DEFAULT;
-
-			ID3D11Texture2D *pZBufferTexture;
-			hr = g_pD3DDevice->CreateTexture2D(&tex2dDesc, NULL, &pZBufferTexture);
-			if (FAILED(hr)) return hr;
-
-			// create the z buffer
-			D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
-			ZeroMemory(&dsvDesc, sizeof(dsvDesc));
-			dsvDesc.Format = tex2dDesc.Format;
-			dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-
-			g_pD3DDevice->CreateDepthStencilView(pZBufferTexture, &dsvDesc, &g_pZBuffer);
-			pZBufferTexture->Release();
-
-
-			g_pImmediateContext->OMSetRenderTargets(1, &g_pBackBufferRTView, g_pZBuffer);
-
-
-			//Set up viewport
-			D3D11_VIEWPORT vp;
-			vp.Width = LOWORD(lParam);
-			vp.Height = HIWORD(lParam);
-			screenHeight = HIWORD(lParam);
-			screenWidth = LOWORD(lParam);
-			vp.MinDepth = 0.0f;
-			vp.MaxDepth = 1.0f;
-			vp.TopLeftX = 0;
-			vp.TopLeftY = 0;
-			if(g_pGameManager)
+			if (g_pGameManager->GetSwapChain())
 			{
-				g_pGameManager->SetScreenHeight(screenHeight);
-				g_pGameManager->SetScreenWidth(screenWidth);
+
+				ID3D11Device* device = g_pGameManager->GetDevice();
+				ID3D11DeviceContext* immediateContext = g_pGameManager->GetImmediateContext();
+				ID3D11RenderTargetView* backBuffer = g_pGameManager->GetRenderTarget();
+				ID3D11DepthStencilView* zBuffer = g_pGameManager->GetZBuffer();
+				IDXGISwapChain* swapChain = g_pGameManager->GetSwapChain();
+				immediateContext->OMSetRenderTargets(0, 0, 0);
+
+				//Release all outstanding references to the swap chain's buffers.
+				backBuffer->Release();
+
+				zBuffer->Release();
+
+				HRESULT hr;
+				//Preserve the existing buffer count and format.
+				//Automatically choose the width and height to match the client rect
+				hr = swapChain->ResizeBuffers(0, LOWORD(lParam), HIWORD(lParam), DXGI_FORMAT_UNKNOWN, 0);
+
+				// Get buffer and create new render-target-view
+				ID3D11Texture2D* pBuffer;
+				hr = swapChain->GetBuffer(0, _uuidof(ID3D11Texture2D), (void**)&pBuffer);
+
+				hr = device->CreateRenderTargetView(pBuffer, NULL, &backBuffer);
+				pBuffer->Release();
+
+
+				// Create Z buffer texture
+				D3D11_TEXTURE2D_DESC tex2dDesc;
+				ZeroMemory(&tex2dDesc, sizeof(tex2dDesc));
+
+				tex2dDesc.Width = LOWORD(lParam);
+				tex2dDesc.Height = HIWORD(lParam);
+				tex2dDesc.ArraySize = 1;
+				tex2dDesc.MipLevels = 1;
+				tex2dDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+				tex2dDesc.SampleDesc.Count = 1;
+				tex2dDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+				tex2dDesc.Usage = D3D11_USAGE_DEFAULT;
+
+				ID3D11Texture2D *pZBufferTexture;
+				hr = device->CreateTexture2D(&tex2dDesc, NULL, &pZBufferTexture);
+				if (FAILED(hr)) return hr;
+
+				// create the z buffer
+				D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+				ZeroMemory(&dsvDesc, sizeof(dsvDesc));
+				dsvDesc.Format = tex2dDesc.Format;
+				dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+
+				device->CreateDepthStencilView(pZBufferTexture, &dsvDesc, &zBuffer);
+				pZBufferTexture->Release();
+
+
+				immediateContext->OMSetRenderTargets(1, &backBuffer, zBuffer);
+
+
+				//Set up viewport
+				D3D11_VIEWPORT vp;
+				vp.Width = LOWORD(lParam);
+				vp.Height = HIWORD(lParam);
+				vp.MinDepth = 0.0f;
+				vp.MaxDepth = 1.0f;
+				vp.TopLeftX = 0;
+				vp.TopLeftY = 0;
+				if (g_pGameManager)
+				{
+					g_pGameManager->SetScreenHeight(vp.Height);
+					g_pGameManager->SetScreenWidth(vp.Width);
+				}
+				immediateContext->RSSetViewports(1, &vp);
 			}
-			g_pImmediateContext->RSSetViewports(1, &vp);
 		}
 		return 1;
 	case WM_KEYDOWN:
@@ -290,6 +229,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 //////////////////////////////////////////////////////////////////////////////////////
 HRESULT InitialiseD3D()
 {
+	ID3D11Device* device;
+	ID3D11DeviceContext* context;
+	IDXGISwapChain* swapChain;
+	ID3D11RenderTargetView* backBuffer;
+	ID3D11DepthStencilView* zBuffer;
+
 	HRESULT hr = S_OK;
 
 	RECT rc;
@@ -338,8 +283,8 @@ HRESULT InitialiseD3D()
 		g_driverType = driverTypes[driverTypeIndex];
 		hr = D3D11CreateDeviceAndSwapChain(NULL, g_driverType, NULL,
 			createDeviceFlags, featureLevels, numFeatureLevels,
-			D3D11_SDK_VERSION, &sd, &g_pSwapChain,
-			&g_pD3DDevice, &g_featureLevel, &g_pImmediateContext);
+			D3D11_SDK_VERSION, &sd, &swapChain,
+			&device, &g_featureLevel, &context);
 		if (SUCCEEDED(hr))
 			break;
 	}
@@ -349,13 +294,13 @@ HRESULT InitialiseD3D()
 
 	//Get pointer to back buffer texture
 	ID3D11Texture2D *pBackBufferTexture;
-	hr = g_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBufferTexture);
+	hr = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBufferTexture);
 
 	if (FAILED(hr))
 		return hr;
 
 	//Use the back buffer texture pointer to create the render target
-	hr = g_pD3DDevice->CreateRenderTargetView(pBackBufferTexture, NULL, &g_pBackBufferRTView);
+	hr = device->CreateRenderTargetView(pBackBufferTexture, NULL, &backBuffer);
 
 	pBackBufferTexture->Release();
 
@@ -376,7 +321,7 @@ HRESULT InitialiseD3D()
 	tex2dDesc.Usage = D3D11_USAGE_DEFAULT;
 
 	ID3D11Texture2D* pZBufferTexture;
-	hr = g_pD3DDevice->CreateTexture2D(&tex2dDesc, NULL, &pZBufferTexture);
+	hr = device->CreateTexture2D(&tex2dDesc, NULL, &pZBufferTexture);
 	if (FAILED(hr))
 		return hr;
 
@@ -387,12 +332,12 @@ HRESULT InitialiseD3D()
 	dsvDesc.Format = tex2dDesc.Format;
 	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 
-	g_pD3DDevice->CreateDepthStencilView(pZBufferTexture, &dsvDesc, &g_pZBuffer);
+	device->CreateDepthStencilView(pZBufferTexture, &dsvDesc, &zBuffer);
 	pZBufferTexture->Release();
 
 
 	//Set the render target view
-	g_pImmediateContext->OMSetRenderTargets(1, &g_pBackBufferRTView, g_pZBuffer);
+	context->OMSetRenderTargets(1, &backBuffer, zBuffer);
 
 	//Set the viewport
 	D3D11_VIEWPORT viewport;
@@ -404,11 +349,16 @@ HRESULT InitialiseD3D()
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
 
-	screenWidth = width;
-	screenHeight = height;
 	
-	g_pImmediateContext->RSSetViewports(1, &viewport);
+	context->RSSetViewports(1, &viewport);
 
+	g_pGameManager = new GameManager(viewport.Height, viewport.Width, &g_hWnd, &g_hInst);
+
+	g_pGameManager->SetDevice(device);
+	g_pGameManager->SetImmediateContext(context);
+	g_pGameManager->SetSwapChain(swapChain);
+	g_pGameManager->SetZBuffer(zBuffer);
+	g_pGameManager->SetRenderTarget(backBuffer);
 	return S_OK;
 }
 
@@ -417,211 +367,5 @@ HRESULT InitialiseD3D()
 //////////////////////////////////////////////////////////////////////////////////////
 void ShutdownD3D()
 {
-	if (g_rootNode) delete g_rootNode;
-	if (g_Particles) delete g_Particles;
-	if (g_SkyBox) delete g_SkyBox;
-	if (g_Sphere) delete g_Sphere;
-	if (g_Plane) delete g_Plane;
-	if (g_2DText) delete g_2DText;
-	if (g_Input) delete g_Input;
-	if (g_cam) delete g_cam;
-	if (g_pBrickTexture) g_pBrickTexture->Release();
-	if (g_pSampler0) g_pSampler0->Release();
-	if (g_pZBuffer) g_pZBuffer->Release(); //06-01b
-	if (g_pBackBufferRTView) g_pBackBufferRTView->Release();
-	if (g_pSwapChain) g_pSwapChain->Release();
-	if (g_pImmediateContext) g_pImmediateContext->Release();
-	if (g_pD3DDevice) g_pD3DDevice->Release();
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////
-//Init graphics - Tutorial 03
-/////////////////////////////////////////////////////////////////////////////////////////////
-HRESULT InitialiseGraphics()
-{
-
-
-	g_Sphere = new Model(g_pD3DDevice, g_pImmediateContext, g_lights);
-	g_Plane = new Model(g_pD3DDevice, g_pImmediateContext, g_lights);
-	g_Cube = new Model(g_pD3DDevice, g_pImmediateContext, g_lights);
-	
-	g_Sphere->LoadObjModel((char*)"assets/Sphere.obj");
-	g_Sphere->LoadCustomShader((char*)"reflect_shader.hlsl", (char*)"ModelVS", (char*)"ModelPS");
-	
-	g_Sphere->ChangeModelType(ModelType::Shiny);
-	g_Sphere->SetCollisionType(CollisionType::Sphere);
-
-	g_Plane->LoadObjModel((char*)"assets/plane.obj");
-	
-	g_Plane->LoadDefaultShaders();
-	
-	g_Plane->SetCollisionType(CollisionType::Box);
-
-
-	g_brickSphere = new Model(g_pD3DDevice, g_pImmediateContext, g_lights);
-	g_brickSphere->LoadObjModel((char*)"assets/Sphere.obj");
-	
-	g_brickSphere->LoadDefaultShaders();
-	
-
-	g_brickSphere->SetSampler(g_pSampler0);
-	g_brickSphere->SetTexture(g_pBrickTexture);
-	g_brickSphere->SetCollisionType(CollisionType::Sphere);
-
-	g_Plane->SetSampler(g_pSampler0);
-	g_Plane->SetTexture(g_pBrickTexture);
-	g_Sphere->SetSampler(g_pSampler0);
-	g_Sphere->SetTexture(g_pSkyBoxTexture);
-	
-
-	g_SkyBox = new SkyBox(g_pD3DDevice, g_pImmediateContext);
-	g_SkyBox->CreateSkybox();
-	
-
-	
-	g_Particles = new ParticleFactory(g_pD3DDevice, g_pImmediateContext, g_lights);
-	g_Particles->CreateParticle();
-	g_Particles->SetActive(true);
-
-
-	SetUpScene();
-	return S_OK;
-}
-/////////////////////////////////////////////////////////////////////////////////////////////
-
-// Render frame
-void RenderFrame(void)
-{
-	//Show fps on screen
-	string fps = std::to_string(g_pTimer->GetFPS());
-	g_2DText->AddText("FPS: " + fps, -1.0, 1.0, .05);
-
-	// Clear the back buffer - choose a colour you like
-	float rgba_clear_colour[4] = { 0.0f, 0.1f, 0.1f, 1.0f };
-	g_pImmediateContext->ClearRenderTargetView(g_pBackBufferRTView, rgba_clear_colour);
-	g_pImmediateContext->ClearDepthStencilView(g_pZBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-	
-	//Render Here
-
-	
-	XMMATRIX projection, view, world;
-	
-	projection = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0), screenWidth / screenHeight, 1.0, 250.0);
-	view = g_cam->GetViewMatrix();
-	world = XMMatrixIdentity();
-
-	g_SkyBox->RenderSkyBox(&view, &projection, g_cam);
-
-
-	g_rootNode->Execute(&world, &view, &projection);
-	
-
-	//g_Particles->Draw(&view, &projection, &g_cam->GetPosition());
-
-
-
-	g_2DText->RenderText();
-
-	g_pGameManager->Render();
-	//Display what has just been rendered
-	g_pSwapChain->Present(0, 0);
-}
-
-void CheckInputs(double time)
-{
-	g_Input->ReadInputStates();
-
-	if (g_Input->IsKeyPressed(DIK_ESCAPE))
-		DestroyWindow(g_hWnd);
-
-	if (g_Input->IsKeyPressed(DIK_W))
-	{
-		g_cam->Forward(10.0f * time, g_rootNode);
-	}
-
-	if (g_Input->IsKeyPressed(DIK_S))
-	{
-		g_cam->Forward(-10.0f * time, g_rootNode);
-	}
-	if (g_Input->IsKeyPressed(DIK_A))
-	{
-		g_cam->Strafe(-10.0f * time, g_rootNode);
-	}
-
-	if (g_Input->IsKeyPressed(DIK_D))
-	{
-		g_cam->Strafe(10.0f * time, g_rootNode);
-	}
-
-	if (g_Input->IsKeyPressed(DIK_UP))
-	{
-		g_node2->IncYPos(10.0f * time, g_rootNode);
-	}
-	if (g_Input->IsKeyPressed(DIK_DOWN))
-	{
-		g_node2->IncYPos(-10.0f * time, g_rootNode);
-	}
-		
-
-	if (g_Input->IsKeyPressed(DIK_RIGHT))
-		g_cam->RotateCamera(10.0f * time, 0.0f);
-
-	if (g_Input->IsKeyPressed(DIK_1))
-		g_cam->ChangeCameraType(CameraType::FirstPerson);
-
-	if (g_Input->IsKeyPressed(DIK_2))
-		g_cam->ChangeCameraType(CameraType::FreeLook);
-
-
-	if (g_Input->IsKeyPressed(DIK_6))
-		g_Particles->SwitchParticleType(ParticleType::Explosion);
-
-	if (g_Input->IsKeyPressed(DIK_5))
-		g_Particles->SwitchParticleType(ParticleType::Fountain);
-
-	if (g_Input->IsKeyPressed(DIK_F))
-	{
-		g_Particles->SetActive(!g_Particles->GetActive());
-	}
-
-	if (g_Input->IsKeyPressed(DIK_J))
-		g_node3->MoveForward(0.01f * time, g_rootNode);
-
-	if (g_Input->IsKeyPressed(DIK_O))
-		g_node2->MoveForward(0.01f * time, g_rootNode);
-
-	if (g_Input->IsKeyPressed(DIK_I))
-		g_node2->LookAt_XZ(g_cam->GetX(), g_cam->GetZ());
-	
-	g_cam->RotateCamera(g_Input->GetMouseX() * 0.1f, g_Input->GetMouseY() * 0.1f);
-}
-
-void SetUpScene()
-{
-	g_rootNode = new Scene_Node("Root");
-	g_node1 = new Scene_Node("Floor");
-	g_node2 = new Scene_Node("Shiny Sphere");
-	g_node3 = new Scene_Node("BrickSphere");
-	
-
-	g_node1->SetModel(g_Plane);
-	g_node1->SetYPos(-3.0f);
-	g_node2->SetModel(g_Sphere);
-	g_node2->SetXPos(5.0f);
-	g_node2->SetZPos(10.0f);
-	g_node3->SetModel(g_brickSphere);
-	g_node3->SetXPos(-5.0f);
-	g_node3->SetXPos(10.0f);
-
-	g_rootNode->AddChildNode(g_node1);
-	g_rootNode->AddChildNode(g_node2);
-	g_rootNode->AddChildNode(g_node3);
-
-}
-
-void UpdateScene(double time)
-{
-	CheckInputs(time);
-	g_cam->Update();
-	RenderFrame();
+	if (g_pGameManager) delete g_pGameManager;
 }
