@@ -153,7 +153,6 @@ bool Scene_Node::CheckCollision(Scene_Node* compareTree, Scene_Node* objectTreeR
 		//Sphere on Sphere collision
 		if (m_model->GetCollisionType() == CollisionType::Sphere && compareTree->m_model->GetCollisionType() == CollisionType::Sphere)
 		{
-
 			float dx = object1.x - object2.x;
 			float dy = object1.y - object2.y;
 			float dz = object1.z - object2.z;

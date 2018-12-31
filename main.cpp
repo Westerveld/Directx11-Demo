@@ -16,7 +16,7 @@
 #include "ParticleFactory.h"
 #include "Scene_Node.h"
 #include "maths.h"
-#include "Timer.h"
+#include "GameManager.h"
 
 //////////////////////////////////////////////////////////////////////////////////////
 //	Global Variables
@@ -34,11 +34,6 @@ ID3D11DeviceContext*    g_pImmediateContext = NULL;
 IDXGISwapChain*         g_pSwapChain = NULL;
 ID3D11RenderTargetView* g_pBackBufferRTView = NULL;
 
-ID3D11Buffer*			g_pVertexBuffer;
-ID3D11VertexShader*		g_pVertexShader;
-ID3D11PixelShader*		g_pPixelShader;
-ID3D11InputLayout*		g_pInputLayout;
-ID3D11Buffer*			g_pConstantBuffer0; //Tutorial 04-01
 ID3D11DepthStencilView* g_pZBuffer; //Tutorial 06-01b
 ID3D11ShaderResourceView* g_pBrickTexture; //Tutorial 08-01
 ID3D11ShaderResourceView* g_pSkyBoxTexture;
@@ -47,7 +42,6 @@ ID3D11SamplerState*		g_pSampler0; //Tutorial 08-01
 
 Camera*					g_cam;
 maths*					g_maths;
-POINT					g_mousePos;
 Text2D*					g_2DText;
 LightManager*			g_lights;
 Model*					g_Sphere;
@@ -63,7 +57,9 @@ Scene_Node*				g_node2;
 Scene_Node*				g_node3;
 
 InputHandler*			g_Input;
-Timer*					g_Timer;
+Timer*					g_pTimer;
+
+GameManager*			g_pGameManager;
 
 //Define vertex structure
 struct POS_COL_TEX_NORM_VERTEX //This will be added to and renamed in future tutorials
@@ -74,29 +70,11 @@ struct POS_COL_TEX_NORM_VERTEX //This will be added to and renamed in future tut
 	XMFLOAT3 Normal;
 };
 
-//Buffer for the cameras position
-struct CONSTANT_BUFFER0
-{
-	XMMATRIX WorldViewProjection; //64 bytes
-	XMVECTOR dirLightVector; //16 bytes
-	XMVECTOR dirLightCol; // 16 bytes
-	XMVECTOR ambLightCol; // 16 bytes
-	
-};
 
-float verticalMove; 
-float horizontalMove; 
+
 float screenWidth; 
 float screenHeight;
-float degrees;
-CONSTANT_BUFFER0 cb0_values;
 
-//Lighting
-XMVECTOR g_dirLightLocation;
-XMVECTOR g_dirLightColor;
-XMVECTOR g_ambLightColor;
-
-//MovementVars;
 
 //////////////////////////////////////////////////////////////////////////////////////
 //	Forward declarations
@@ -139,8 +117,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		DXTRACE_MSG("Failed to create Device");
 		return 0;
 	}
-
-	if (FAILED(InitialiseGraphics()))
+	g_pGameManager = new GameManager(screenHeight, screenWidth);
+	if (FAILED(g_pGameManager->InitialiseGraphics(g_pD3DDevice, g_pImmediateContext, g_pSwapChain, g_pBackBufferRTView)))
 	{
 		DXTRACE_MSG("Failed to initialise graphics");
 		return 0;
@@ -149,7 +127,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	// Main message loop
 	MSG msg = { 0 };
-	degrees = 0;
+
 	while (msg.message != WM_QUIT)
 	{
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -160,10 +138,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		else
 		{
 			
-			//Update the timer
-			g_Timer->UpdateTimer();
-			//Update the scene
-			UpdateScene(g_Timer->GetFrameTime());
+			
+			g_pGameManager->Update();
 		}
 	}
 
@@ -288,7 +264,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			vp.MaxDepth = 1.0f;
 			vp.TopLeftX = 0;
 			vp.TopLeftY = 0;
-
+			if(g_pGameManager)
+			{
+				g_pGameManager->SetScreenHeight(screenHeight);
+				g_pGameManager->SetScreenWidth(screenWidth);
+			}
 			g_pImmediateContext->RSSetViewports(1, &vp);
 		}
 		return 1;
@@ -296,8 +276,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		return 0;
 
 	case WM_LBUTTONDOWN:
-		g_mousePos.x = LOWORD(lParam);
-		g_mousePos.y = HIWORD(lParam);
 		return 0;
 
 	default:
@@ -431,8 +409,6 @@ HRESULT InitialiseD3D()
 	
 	g_pImmediateContext->RSSetViewports(1, &viewport);
 
-	g_2DText = new Text2D("assets/font1.bmp", g_pD3DDevice, g_pImmediateContext);
-	g_Timer = new Timer();
 	return S_OK;
 }
 
@@ -452,11 +428,6 @@ void ShutdownD3D()
 	if (g_pBrickTexture) g_pBrickTexture->Release();
 	if (g_pSampler0) g_pSampler0->Release();
 	if (g_pZBuffer) g_pZBuffer->Release(); //06-01b
-	if (g_pConstantBuffer0) g_pConstantBuffer0->Release(); //04-01
-	if (g_pVertexBuffer) g_pVertexBuffer->Release(); //03-01
-	if (g_pInputLayout) g_pInputLayout->Release(); //03-01
-	if (g_pVertexShader) g_pVertexShader->Release(); //03-01
-	if (g_pPixelShader) g_pPixelShader->Release(); //03-01
 	if (g_pBackBufferRTView) g_pBackBufferRTView->Release();
 	if (g_pSwapChain) g_pSwapChain->Release();
 	if (g_pImmediateContext) g_pImmediateContext->Release();
@@ -468,161 +439,30 @@ void ShutdownD3D()
 /////////////////////////////////////////////////////////////////////////////////////////////
 HRESULT InitialiseGraphics()
 {
-	HRESULT hr = S_OK;	
-
-	D3D11_SAMPLER_DESC sampler_desc;
-	ZeroMemory(&sampler_desc, sizeof(sampler_desc));
-	sampler_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	sampler_desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampler_desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampler_desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampler_desc.MaxLOD = D3D11_FLOAT32_MAX;
-
-	g_pD3DDevice->CreateSamplerState(&sampler_desc, &g_pSampler0);
-	
-	//Set up constant buffer
-	D3D11_BUFFER_DESC constantBufferDesc;
-	ZeroMemory(&constantBufferDesc, sizeof(constantBufferDesc));
-	
-	constantBufferDesc.Usage = D3D11_USAGE_DEFAULT; //Can use UpdateSubresources() to update
-	constantBufferDesc.ByteWidth = 112; //MUST be a multiple of 16, calculate CB struct
-	constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER; //Use as a constant buffer
-
-	hr = g_pD3DDevice->CreateBuffer(&constantBufferDesc, NULL, &g_pConstantBuffer0);
-	
-	if (FAILED(hr))
-	{
-		return hr;
-
-	}	
-
-	//Load and compile the pixel and vertex shaders - use vs_5_0 to target DX11 hardware only
-	ID3DBlob *VS, *PS, *error;
-	hr = D3DX11CompileFromFile("shaders.hlsl", 0, 0, "VShader", "vs_4_0", 0, 0, 0, &VS, &error, 0);
-
-	if (error != 0)//Check for shader compilation error
-	{
-		OutputDebugStringA((char*)error->GetBufferPointer());
-		error->Release();
-		if (FAILED(hr))//Don't fail if error is just a warning
-		{
-			return hr;
-		}
-	}
-
-	hr = D3DX11CompileFromFile("shaders.hlsl", 0, 0, "PShader", "ps_4_0", 0, 0, 0, &PS, &error, 0);
-
-	if (error != 0)//Check for shader compilation error
-	{
-		OutputDebugStringA((char*)error->GetBufferPointer());
-		error->Release();
-		if (FAILED(hr))//Don't fail if error is just a warning
-		{
-			return hr;
-		}
-	}
-
-	//Create shader objects
-	hr = g_pD3DDevice->CreateVertexShader(VS->GetBufferPointer(), VS->GetBufferSize(), NULL, &g_pVertexShader);
-	if (FAILED(hr))
-	{
-		return hr;
-	}
-
-	hr = g_pD3DDevice->CreatePixelShader(PS->GetBufferPointer(), PS->GetBufferSize(), NULL, &g_pPixelShader);
-	if (FAILED(hr))
-	{
-		return hr;
-	}
-
-	//Set the shader objects as active
-	g_pImmediateContext->VSSetShader(g_pVertexShader, 0, 0);
-	g_pImmediateContext->PSSetShader(g_pPixelShader, 0, 0);
-
-	//Create and set the input layout object
-	D3D11_INPUT_ELEMENT_DESC iedesc[] =
-	{
-		//Be very careful setting the correct dxgi format and D3D version
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		//NOTE the spelling of COLOR. Again, be careful setting the correct dxgi format (using A32) and correct D3D version
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
-	};
-
-	hr = g_pD3DDevice->CreateInputLayout(iedesc, ARRAYSIZE(iedesc), VS->GetBufferPointer(), VS->GetBufferSize(), &g_pInputLayout);
-
-	if (FAILED(hr))
-	{
-		return hr;
-	}
-
-	g_pImmediateContext->IASetInputLayout(g_pInputLayout);
-
-	hr = D3DX11CreateShaderResourceViewFromFile(g_pD3DDevice,
-		"assets/brick.png", NULL, NULL,
-		&g_pBrickTexture, NULL);
-	if (FAILED(hr))
-	{
-		return hr;
-	}
-
-	hr = D3DX11CreateShaderResourceViewFromFile(g_pD3DDevice,
-		"assets/skybox_mountain.dds", NULL, NULL,
-		&g_pSkyBoxTexture, NULL);
-
-	if (FAILED(hr))
-	{
-		return hr;
-	}
 
 
-	g_cam = new Camera(0.0, 0.0, -0.5, 0.0);
-	g_lights = new LightManager();
-
-	g_maths = new maths();
 	g_Sphere = new Model(g_pD3DDevice, g_pImmediateContext, g_lights);
 	g_Plane = new Model(g_pD3DDevice, g_pImmediateContext, g_lights);
 	g_Cube = new Model(g_pD3DDevice, g_pImmediateContext, g_lights);
 	
-	hr = g_Sphere->LoadObjModel((char*)"assets/Sphere.obj");
-	if (FAILED(hr))
-	{
-		return hr;
-	}
-	hr = g_Sphere->LoadCustomShader((char*)"reflect_shader.hlsl", (char*)"ModelVS", (char*)"ModelPS");
-	if (FAILED(hr))
-	{
-		return hr;
-	}
+	g_Sphere->LoadObjModel((char*)"assets/Sphere.obj");
+	g_Sphere->LoadCustomShader((char*)"reflect_shader.hlsl", (char*)"ModelVS", (char*)"ModelPS");
+	
 	g_Sphere->ChangeModelType(ModelType::Shiny);
 	g_Sphere->SetCollisionType(CollisionType::Sphere);
 
-	hr = g_Plane->LoadObjModel((char*)"assets/plane.obj");
-	if (FAILED(hr))
-	{
-		return hr;
-	}
-	hr = g_Plane->LoadDefaultShaders();
-	if (FAILED(hr))
-	{
-		return hr;
-	}
-
+	g_Plane->LoadObjModel((char*)"assets/plane.obj");
+	
+	g_Plane->LoadDefaultShaders();
+	
 	g_Plane->SetCollisionType(CollisionType::Box);
 
 
 	g_brickSphere = new Model(g_pD3DDevice, g_pImmediateContext, g_lights);
-	hr = g_brickSphere->LoadObjModel((char*)"assets/Sphere.obj");
-	if (FAILED(hr))
-	{
-		return hr;
-	}
-	hr = g_brickSphere->LoadDefaultShaders();
-	if (FAILED(hr))
-	{
-		return hr;
-	}
+	g_brickSphere->LoadObjModel((char*)"assets/Sphere.obj");
+	
+	g_brickSphere->LoadDefaultShaders();
+	
 
 	g_brickSphere->SetSampler(g_pSampler0);
 	g_brickSphere->SetTexture(g_pBrickTexture);
@@ -635,11 +475,8 @@ HRESULT InitialiseGraphics()
 	
 
 	g_SkyBox = new SkyBox(g_pD3DDevice, g_pImmediateContext);
-	hr = g_SkyBox->CreateSkybox("assets/brick.png");
-	if (FAILED(hr))
-	{
-		return hr;
-	}
+	g_SkyBox->CreateSkybox();
+	
 
 	
 	g_Particles = new ParticleFactory(g_pD3DDevice, g_pImmediateContext, g_lights);
@@ -656,7 +493,7 @@ HRESULT InitialiseGraphics()
 void RenderFrame(void)
 {
 	//Show fps on screen
-	string fps = std::to_string(g_Timer->GetFPS());
+	string fps = std::to_string(g_pTimer->GetFPS());
 	g_2DText->AddText("FPS: " + fps, -1.0, 1.0, .05);
 
 	// Clear the back buffer - choose a colour you like
@@ -666,10 +503,6 @@ void RenderFrame(void)
 	
 	//Render Here
 
-	//Lighting set up
-	g_dirLightLocation = XMVectorSet(0.0f, 0.0f, -1.0f, 0.0f);
-	g_dirLightColor = XMVectorSet(0.75f, 0.75f, 0.75f, 0.0f); //green
-	g_ambLightColor = XMVectorSet(0.5f, 0.5f, 0.5f, 1.0f); //dark grey ambient
 	
 	XMMATRIX projection, view, world;
 	
@@ -689,7 +522,7 @@ void RenderFrame(void)
 
 	g_2DText->RenderText();
 
-
+	g_pGameManager->Render();
 	//Display what has just been rendered
 	g_pSwapChain->Present(0, 0);
 }

@@ -21,7 +21,7 @@ SkyBox::~SkyBox()
 	if (m_pImmediateContext) m_pImmediateContext->Release();
 }
 
-HRESULT SkyBox::CreateSkybox(char* texture)
+HRESULT SkyBox::CreateSkybox()
 {
 	HRESULT hr = S_OK;
 
