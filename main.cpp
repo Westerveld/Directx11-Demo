@@ -138,76 +138,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			if (g_pGameManager->GetSwapChain())
 			{
-
-				ID3D11Device* device = g_pGameManager->GetDevice();
-				ID3D11DeviceContext* immediateContext = g_pGameManager->GetImmediateContext();
-				ID3D11RenderTargetView* backBuffer = g_pGameManager->GetRenderTarget();
-				ID3D11DepthStencilView* zBuffer = g_pGameManager->GetZBuffer();
-				IDXGISwapChain* swapChain = g_pGameManager->GetSwapChain();
-				immediateContext->OMSetRenderTargets(0, 0, 0);
-
-				//Release all outstanding references to the swap chain's buffers.
-				backBuffer->Release();
-
-				zBuffer->Release();
-
-				HRESULT hr;
-				//Preserve the existing buffer count and format.
-				//Automatically choose the width and height to match the client rect
-				hr = swapChain->ResizeBuffers(0, LOWORD(lParam), HIWORD(lParam), DXGI_FORMAT_UNKNOWN, 0);
-
-				// Get buffer and create new render-target-view
-				ID3D11Texture2D* pBuffer;
-				hr = swapChain->GetBuffer(0, _uuidof(ID3D11Texture2D), (void**)&pBuffer);
-
-				hr = device->CreateRenderTargetView(pBuffer, NULL, &backBuffer);
-				pBuffer->Release();
-
-
-				// Create Z buffer texture
-				D3D11_TEXTURE2D_DESC tex2dDesc;
-				ZeroMemory(&tex2dDesc, sizeof(tex2dDesc));
-
-				tex2dDesc.Width = LOWORD(lParam);
-				tex2dDesc.Height = HIWORD(lParam);
-				tex2dDesc.ArraySize = 1;
-				tex2dDesc.MipLevels = 1;
-				tex2dDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-				tex2dDesc.SampleDesc.Count = 1;
-				tex2dDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-				tex2dDesc.Usage = D3D11_USAGE_DEFAULT;
-
-				ID3D11Texture2D *pZBufferTexture;
-				hr = device->CreateTexture2D(&tex2dDesc, NULL, &pZBufferTexture);
-				if (FAILED(hr)) return hr;
-
-				// create the z buffer
-				D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
-				ZeroMemory(&dsvDesc, sizeof(dsvDesc));
-				dsvDesc.Format = tex2dDesc.Format;
-				dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-
-				device->CreateDepthStencilView(pZBufferTexture, &dsvDesc, &zBuffer);
-				pZBufferTexture->Release();
-
-
-				immediateContext->OMSetRenderTargets(1, &backBuffer, zBuffer);
-
-
-				//Set up viewport
-				D3D11_VIEWPORT vp;
-				vp.Width = LOWORD(lParam);
-				vp.Height = HIWORD(lParam);
-				vp.MinDepth = 0.0f;
-				vp.MaxDepth = 1.0f;
-				vp.TopLeftX = 0;
-				vp.TopLeftY = 0;
-				if (g_pGameManager)
-				{
-					g_pGameManager->SetScreenHeight(vp.Height);
-					g_pGameManager->SetScreenWidth(vp.Width);
-				}
-				immediateContext->RSSetViewports(1, &vp);
+				g_pGameManager->ResizeWindow(&lParam);
 			}
 		}
 		return 1;

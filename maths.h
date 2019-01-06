@@ -21,8 +21,13 @@ public:
 	static xyz PlaneIntersection(Plane* p, xyz* v1, xyz* v2);
 	static bool InTriangle(xyz* t0, xyz* t1, xyz* t2, xyz* point);
 	static int Sign(float number);
+
 	static xyz SetXYZ(float x, float y, float z);
-
-	static xyz Scale(xyz vector, float scalar);
+	static xyz SetXYZ(xyz* v);
+	static xyz ScaleXYZ(xyz* v, float scalar);
+	static xyz ScaleXYZ(xyz* v1, xyz* v2);
+	static xyz AddXYZ(xyz* v1, xyz* v2);
+	static xyz SubtractXYZ(xyz* v1, xyz* v2);
+	static bool CompareXYZ(xyz* v1, xyz* v2);
+	
 };
-

@@ -1,5 +1,6 @@
 #include "GameManager.h"
-
+#include "Player.h"
+#include "Enemy.h"
 
 
 GameManager::GameManager(float height, float width, HWND* hWnd, HINSTANCE* hInst)
@@ -8,6 +9,7 @@ GameManager::GameManager(float height, float width, HWND* hWnd, HINSTANCE* hInst
 	m_pScreenWidth = width;
 	m_pLights = new LightManager();
 	m_pTimer = new TimeHandler();
+	m_pTimer->StartTimer();
 	m_phWnd = hWnd;
 	m_phInst = hInst;
 	m_pInput = new InputHandler(hWnd, hInst);
@@ -233,20 +235,44 @@ void GameManager::LoadLevel (char* textFile)
 					m_pWalls.push_back(wall);
 				}
 				break;
-				//Camera
-				case 'C':
+				//Player
+				case 'P':
 				{
+					m_pPlayerNode = new Scene_Node("Player");
+					m_pPlayerNode->SetModel(m_pCubeModel);
+					m_pPlayer = new Player(m_pPlayerNode, m_pCam, 5.0f);
+
+					m_pPlayer->SetPosition((j * 6.0f), 0.0f, (i * 6.0f));
+					m_pPlayer->SetGravity(0.0f, -9.82f, 0.0f);
+					UpdatePlayerNode();
+
 					m_pCameraNode = new Scene_Node("Camera");
-					m_pCameraNode->SetModel(m_pCubeModel);
-					m_pCameraNode->SetScale(0.3f);
 					m_pCam->SetPosition(j*6, 0, i*6);
+
+					m_pCam->SetTarget(m_pPlayerNode);
+					m_pCam->ChangeCameraType(ThirdPerson);
+					m_pCam->SetFollowDistance(10.0f);
 					UpdateCameraNode();
+
+
+					m_pRootNode->AddChildNode(m_pPlayerNode);
 					m_pRootNode->AddChildNode(m_pCameraNode);
+
 					XMMATRIX identity = XMMatrixIdentity();
 
 					m_pRootNode->UpdateCollisionTree(&identity, 1.0f);
 				}
 				break;
+				//Enemy
+				case 'E':
+				{
+
+				}
+				//Enemy Waypoint
+				case '*':
+				{
+
+				}
 			}
 		}
 	}
@@ -263,8 +289,12 @@ void GameManager::LoadLevel (char* textFile)
 //Returns the frame time
 void GameManager::Update()
 {
+	float deltaTime = m_pTimer->GetFrameTime();
 	//m_pTimer->UpdateTimer();
+	m_pPlayer->Update(m_pRootNode, deltaTime);
+	UpdatePlayerNode();
 	m_pCam->Update();
+	UpdateCameraNode();
 	//double deltaTime = m_pTimer->GetFrameTime();
 }
 
@@ -288,6 +318,7 @@ void GameManager::Render()
 
 void GameManager::CheckInputs()
 {
+	float deltaTime = m_pTimer->GetFrameTime();
 	m_pInput->ReadInputStates();
 
 	if (m_pInput->IsKeyPressed(DIK_ESCAPE))
@@ -297,63 +328,79 @@ void GameManager::CheckInputs()
 
 	if (m_pInput->IsKeyPressed(DIK_W))
 	{
-		m_pCam->Forward(0.01f);
+		m_pPlayer->MoveForward(deltaTime);
 
-		UpdateCameraNode();
+		UpdatePlayerNode();
 		XMMATRIX identity = XMMatrixIdentity();
 
 		m_pRootNode->UpdateCollisionTree(&identity, 1.0f);
 
-		if (m_pCameraNode->CheckCollision(m_pRootNode))
+		if (m_pPlayerNode->CheckCollision(m_pRootNode))
 		{
-			m_pCam->Forward(-0.01f);
-			UpdateCameraNode();
+			m_pPlayer->MoveForward(-deltaTime);
+			UpdatePlayerNode();
 		}
 	}
 
 	if (m_pInput->IsKeyPressed(DIK_S))
 	{
-		m_pCam->Forward(-0.01f);
-		UpdateCameraNode();
+		m_pPlayer->MoveForward(-deltaTime);
+		UpdatePlayerNode();
 		XMMATRIX identity = XMMatrixIdentity();
 
 		m_pRootNode->UpdateCollisionTree(&identity, 1.0f);
 
-		if (m_pCameraNode->CheckCollision(m_pRootNode))
+		if (m_pPlayerNode->CheckCollision(m_pRootNode))
 		{
-			m_pCam->Forward(0.01f);
-			UpdateCameraNode();
+			m_pPlayer->MoveForward(deltaTime);
+			UpdatePlayerNode();
 		}
 	}
 	
 	if (m_pInput->IsKeyPressed(DIK_A))
 	{
-		m_pCam->Strafe(-0.01f);
-		UpdateCameraNode();
+		m_pPlayer->MoveRight(deltaTime);
+		UpdatePlayerNode();
 		XMMATRIX identity = XMMatrixIdentity();
 
 		m_pRootNode->UpdateCollisionTree(&identity, 1.0f);
 
-		if (m_pCameraNode->CheckCollision(m_pRootNode))
+		if (m_pPlayerNode->CheckCollision(m_pRootNode))
 		{
-			m_pCam->Strafe(0.01f);
-			UpdateCameraNode();
+			m_pPlayer->MoveRight(-deltaTime);
+			UpdatePlayerNode();
 		}
 	}
 	
 	if (m_pInput->IsKeyPressed(DIK_D))
 	{
-		m_pCam->Strafe(0.01f);
-		UpdateCameraNode();
+		m_pPlayer->MoveRight(-deltaTime);
+		UpdatePlayerNode();
 		XMMATRIX identity = XMMatrixIdentity();
 
 		m_pRootNode->UpdateCollisionTree(&identity, 1.0f);
 
-		if (m_pCameraNode->CheckCollision(m_pRootNode))
+		if (m_pPlayerNode->CheckCollision(m_pRootNode))
 		{
-			m_pCam->Strafe(-0.01f);
-			UpdateCameraNode();
+			m_pPlayer->MoveRight(deltaTime);
+			UpdatePlayerNode();
 		}
+	}
+
+	if (m_pInput->IsKeyPressed(DIK_8))
+	{
+		m_pCam->ChangeCameraType(FirstPerson);
+		UpdateCameraNode();
+	}
+	if (m_pInput->IsKeyPressed(DIK_9))
+	{
+		m_pCam->ChangeCameraType(FreeLook);
+		UpdateCameraNode();
+	}
+	if (m_pInput->IsKeyPressed(DIK_0))
+	{
+		m_pCam->ChangeCameraType(ThirdPerson);
+		UpdateCameraNode();
 	}
 
 	 
@@ -365,4 +412,94 @@ void GameManager::UpdateCameraNode()
 	m_pCameraNode->SetXPos(m_pCam->GetX());
 	m_pCameraNode->SetYPos(m_pCam->GetY());
 	m_pCameraNode->SetZPos(m_pCam->GetZ());
+}
+
+void GameManager::UpdatePlayerNode()
+{
+	xyz pos = m_pPlayer->GetPosition();
+	m_pPlayerNode->SetXPos(pos.x);
+	m_pPlayerNode->SetYPos(pos.y);
+	m_pPlayerNode->SetZPos(pos.z);
+}
+
+HRESULT GameManager::ResizeWindow(LPARAM* lParam)
+{
+	HRESULT hr;
+
+	m_pImmediateContext->OMSetRenderTargets(0, 0, 0);
+
+	//Release all oustanding references to the swap chains buffers
+	if(m_pBackBufferRTView)
+		m_pBackBufferRTView->Release();
+	
+	if(m_pZBuffer)
+		m_pZBuffer->Release();
+
+	//Preserve the existing buffer count and format.
+	//Automatically chose the width and height to match the client rect
+	hr = m_pSwapChain->ResizeBuffers(0, LOWORD(lParam), HIWORD(lParam), DXGI_FORMAT_UNKNOWN, 0);
+
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	//Get buffer and new render-target-view
+	ID3D11Texture2D* pBuffer;
+	
+	hr = m_pSwapChain->GetBuffer(0, _uuidof(ID3D11Texture2D), (void**)&pBuffer);
+
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	hr = m_pD3DDevice->CreateRenderTargetView(pBuffer, NULL, &m_pBackBufferRTView);
+
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+	pBuffer->Release();
+
+	//Create Z buffer texture;
+	D3D11_TEXTURE2D_DESC tex2dDesc;
+	ZeroMemory(&tex2dDesc, sizeof(tex2dDesc));
+	tex2dDesc.Width = LOWORD(lParam);
+	tex2dDesc.Height = HIWORD(lParam);
+	tex2dDesc.ArraySize = 1;
+	tex2dDesc.MipLevels = 1;
+	tex2dDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	tex2dDesc.SampleDesc.Count = 1;
+	tex2dDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	tex2dDesc.Usage = D3D11_USAGE_DEFAULT;
+
+	ID3D11Texture2D *pZBufferTexture;
+	hr = m_pD3DDevice->CreateTexture2D(&tex2dDesc, NULL, &pZBufferTexture);
+	if (FAILED(hr)) return hr;
+
+	// create the z buffer
+	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+	ZeroMemory(&dsvDesc, sizeof(dsvDesc));
+	dsvDesc.Format = tex2dDesc.Format;
+	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+
+	m_pD3DDevice->CreateDepthStencilView(pZBufferTexture, &dsvDesc, &m_pZBuffer);
+	pZBufferTexture->Release();
+
+
+	m_pImmediateContext->OMSetRenderTargets(1, &m_pBackBufferRTView, m_pZBuffer);
+
+
+	//Set up viewport
+	D3D11_VIEWPORT vp;
+	vp.Width = LOWORD(lParam);
+	vp.Height = HIWORD(lParam);
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+
+	m_pImmediateContext->RSSetViewports(1, &vp);
+
 }

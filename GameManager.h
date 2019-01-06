@@ -17,7 +17,7 @@ private:
 
 	ID3D11SamplerState*				m_pSampler0;
 
-	class TimeHandler						*m_pTimer;
+	class TimeHandler				*m_pTimer;
 	LightManager*					m_pLights;
 	Camera*							m_pCam;
 
@@ -25,9 +25,11 @@ private:
 	Text2D*							m_pText;
 	ParticleFactory*				m_pParticles;
 	InputHandler*					m_pInput;
-
+	class Player*					m_pPlayer;
+	class Enemy*					m_pEnemy;
 	HINSTANCE*						m_phInst;
 	HWND*							m_phWnd;
+
 #pragma region Models
 	Model*							m_pSphereModel;
 	Model*							m_pPlaneModel;
@@ -41,11 +43,14 @@ private:
 	Scene_Node*						m_pWall;
 	std::vector<Scene_Node*>		m_pWalls;
 	Scene_Node*						m_pSphere;
+	Scene_Node*						m_pPlayerNode;
 	Scene_Node*						m_pCameraNode;
+	Scene_Node*						m_pEnemyNode;
 #pragma endregion
 	float							m_pScreenHeight, m_pScreenWidth;
 
 	void							UpdateCameraNode();
+	void							UpdatePlayerNode();
 	std::vector<std::string>		m_pLevel;
 public:
 	GameManager(float height, float width, HWND* hWnd, HINSTANCE* hInst);
@@ -75,5 +80,7 @@ public:
 	void					SetZBuffer(ID3D11DepthStencilView* zBuffer) { m_pZBuffer = zBuffer; }
 	
 #pragma endregion
+
+	HRESULT					ResizeWindow(LPARAM* lParam);
 };
 

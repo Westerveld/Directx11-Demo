@@ -6,7 +6,7 @@
 #include <dxerr.h>
 #include <xnamath.h>
 
-#include "camera.h"
+#include "Camera.h"
 
 struct SKYBOX_CONSTANT_BUFFER
 {

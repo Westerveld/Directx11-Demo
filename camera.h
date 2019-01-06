@@ -16,7 +16,10 @@ private:
 	XMMATRIX m_rotationMatrix;
 
 	CameraType m_camType;
+
+	//Third person
 	Scene_Node* m_followTarget;
+	float m_followDistance;
 public:
 	Camera(float x, float y, float z, float camera_rotation);
 	~Camera();
@@ -38,9 +41,15 @@ public:
 	float GetdY() { return XMVectorGetY(m_target); }
 	float GetdZ() { return XMVectorGetZ(m_target); }
 
-	XMFLOAT3 GetPosition() { return XMFLOAT3(m_x, m_y, m_z); }
+	xyz GetPosition() { return maths::SetXYZ(XMVectorGetX(m_position), XMVectorGetY(m_position), XMVectorGetZ(m_position)); }
 	void SetPosition(float x, float y, float z);
 
 	void SetTarget(Scene_Node* target) { m_followTarget = target; }
+	void SetFollowDistance(float value) { m_followDistance = value; }
+
+	xyz GetForward()	{ return maths::SetXYZ(XMVectorGetX(m_forward), XMVectorGetY(m_forward), XMVectorGetZ(m_forward)); }
+	xyz GetRight()		{ return maths::SetXYZ(XMVectorGetX(m_right), XMVectorGetY(m_right), XMVectorGetZ(m_right)); }
+	xyz GetUp()			{ return maths::SetXYZ(XMVectorGetX(m_up), XMVectorGetY(m_up), XMVectorGetZ(m_up)); }
+	xyz GetTarget()		{ return maths::SetXYZ(XMVectorGetX(m_target), XMVectorGetY(m_target), XMVectorGetZ(m_target)); }
 };
 

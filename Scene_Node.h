@@ -10,7 +10,9 @@ private:
 	vector<Scene_Node*>		m_children;
 	string					m_name;
 
+
 	float					m_x, m_y, m_z;
+
 	float					m_Xangle, m_Yangle, m_Zangle;
 	float					m_scale, m_worldScale;
 	float					m_worldCentreX, m_worldCentreY, m_worldCentreZ;

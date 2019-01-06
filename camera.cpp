@@ -1,4 +1,4 @@
-#include "camera.h"
+#include "Camera.h"
 
 Camera::Camera(float x, float y, float z, float camera_rotation)
 {
@@ -125,38 +125,81 @@ XMMATRIX Camera::GetViewMatrix()
 
 void Camera::Update()
 {
-	if(m_camType == CameraType::FirstPerson)
+
+	switch (m_camType)
 	{
+	case FirstPerson:
+		{
+			//Calculate the delta to our look at destination
+			m_dx = sin(XMConvertToRadians(m_camera_rotation_yaw));
+			m_dy = -sin(XMConvertToRadians(m_camera_rotation_pitch));
+			m_dz = cos(XMConvertToRadians(m_camera_rotation_yaw));
 
-		m_dx = sin(XMConvertToRadians(m_camera_rotation_yaw));
-		m_dy = -sin(XMConvertToRadians(m_camera_rotation_pitch));
-		m_dz = cos(XMConvertToRadians(m_camera_rotation_yaw));
+			//Set our position
+			m_position = XMVectorSet(m_x, m_y, m_z, 0.0);
+			//Set our target
+			m_target = XMVectorSet(m_x + m_dx, m_y + m_dy, m_z + m_dz, 0);
+			//Use the default up
+			m_up = m_dUp;
+			//Calculate our forward and right vectors
+			m_forward = XMVector3Normalize(m_target - m_position);
+			m_right = XMVector3Cross(m_forward, m_up);
+		}
+		break;
+	case FreeLook:
+		{
+			//Set up rotation matrix
+			m_rotationMatrix = XMMatrixRotationRollPitchYaw(XMConvertToRadians(m_camera_rotation_pitch), XMConvertToRadians(m_camera_rotation_yaw), 0);
 
-		m_position = XMVectorSet(m_x, m_y, m_z, 0.0);
-		m_target = XMVectorSet(m_x + m_dx, m_y + m_dy, m_z + m_dz, 0);
-		m_up = m_dUp;
+			//Set camera position
+			m_position = XMVectorSet(m_x, m_y, m_z, 0.0);
+			//Set cameras target
+			m_target = XMVector3TransformCoord(m_dForward, m_rotationMatrix);
+			m_target = XMVector3Normalize(m_target);
+			//Determine our right vector
+			m_right = XMVector3TransformCoord(m_dRight, m_rotationMatrix);
+			//Determine our up vector
+			m_up = XMVector3TransformCoord(m_dUp, m_rotationMatrix);
+			//Calculate the forward
+			m_forward = XMVector3TransformCoord(m_dForward, m_rotationMatrix);
+			//Finalise our targets position
+			m_target = m_position + m_target;
 
-		m_forward = XMVector3Normalize(m_target - m_position);
-		m_right = XMVector3Cross(m_forward, m_up);
+		}
+		break;
+	case ThirdPerson:
+		{
+			//Get the targets position
+			m_target = XMVectorSet(m_followTarget->GetXPos(), m_followTarget->GetYPos(), m_followTarget->GetZPos(), 0);
+
+			//Move up the model a bit
+			m_target = XMVectorSetY(m_target, XMVectorGetY(m_target) + 0.5f);
+			//Setup rotation matrix
+			m_rotationMatrix = XMMatrixRotationRollPitchYaw(XMConvertToRadians(-m_camera_rotation_pitch), XMConvertToRadians(m_camera_rotation_yaw), 0);
+			m_position = XMVector3TransformNormal(m_dForward, m_rotationMatrix);
+			m_position = XMVector3Normalize(m_position);
+			m_x = XMVectorGetX(m_position);
+			m_y = XMVectorGetY(m_position);
+			m_z = XMVectorGetZ(m_position);
+			//Set our position of the camera
+			m_position = (m_position * m_followDistance) + m_target;
+
+			//Calculate our foward vector
+			m_forward = XMVector3Normalize(m_target - m_position);
+			//Set our forward to 0 so it lays on the xz plane
+			m_forward = XMVectorSetY(m_forward, m_followTarget->GetYPos());
+			//Normalize the vector
+			m_forward = XMVector3Normalize(m_forward);
+
+			//Calculate our right vector
+			m_right = XMVectorSet(-XMVectorGetZ(m_forward), 0.0f, XMVectorGetX(m_forward), 0.0f);
+
+			//Calculate our up vector
+			m_up = XMVector3Cross(XMVector3Normalize(m_position - m_target), m_right);
+
+		}
+		break;
 	}
-	else if (m_camType == CameraType::FreeLook)
-	{
-		m_rotationMatrix = XMMatrixRotationRollPitchYaw(XMConvertToRadians(m_camera_rotation_pitch), XMConvertToRadians(m_camera_rotation_yaw), 0);
-
-		m_position = XMVectorSet(m_x, m_y, m_z, 0.0);
-		m_target = XMVector3TransformCoord(m_dForward, m_rotationMatrix);
-		m_target = XMVector3Normalize(m_target);
-		m_right = XMVector3TransformCoord(m_dRight, m_rotationMatrix);
-		m_up = XMVector3TransformCoord(m_dUp, m_rotationMatrix);
-		m_forward = XMVector3TransformCoord(m_dForward, m_rotationMatrix);
-		m_target = m_position + m_target;
-		
-	}
-	else if (m_camType == CameraType::ThirdPerson)
-	{
-
-	}
-	
 }
 
 void Camera::SetPosition(float x, float y, float z)

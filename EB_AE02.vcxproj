@@ -27,7 +27,9 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="camera.cpp" />
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="Entity.cpp" />
     <ClCompile Include="InputHandler.cpp" />
     <ClCompile Include="LightManager.cpp" />
     <ClCompile Include="main.cpp" />
@@ -36,13 +38,16 @@
     <ClCompile Include="objfilemodel.cpp" />
     <ClCompile Include="ParticleFactory.cpp" />
     <ClCompile Include="GameManager.cpp" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="Scene_Node.cpp" />
     <ClCompile Include="SkyBox.cpp" />
     <ClCompile Include="text2D.cpp" />
     <ClCompile Include="TimeHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="camera.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Enemy.h" />
+    <ClInclude Include="Entity.h" />
     <ClInclude Include="InputHandler.h" />
     <ClInclude Include="LightManager.h" />
     <ClInclude Include="main.h" />
@@ -51,6 +56,7 @@
     <ClInclude Include="objfilemodel.h" />
     <ClInclude Include="ParticleFactory.h" />
     <ClInclude Include="GameManager.h" />
+    <ClInclude Include="Player.h" />
     <ClInclude Include="Scene_Node.h" />
     <ClInclude Include="SkyBox.h" />
     <ClInclude Include="text2D.h" />

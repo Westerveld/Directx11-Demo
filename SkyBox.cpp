@@ -242,10 +242,11 @@ void SkyBox::RenderSkyBox(XMMATRIX* view, XMMATRIX* projection, Camera* cam)
 
 	SKYBOX_CONSTANT_BUFFER skyBuff;
 
+	xyz camPos = cam->GetPosition();
 	XMMATRIX world;
 	world = XMMatrixIdentity();
 	world *= XMMatrixScaling(3.0f, 3.0f, 3.0f);
-	world *= XMMatrixTranslation(cam->GetX(), cam->GetY(), cam->GetZ());
+	world *= XMMatrixTranslation(camPos.x, camPos.y,camPos.z);
 
 	skyBuff.WVP = world * (*view) * (*projection);
 

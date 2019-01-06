@@ -13,7 +13,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "camera.h"
+#include "Camera.h"
 #include "text2D.h"
 #include "Model.h"
 #include "InputHandler.h"

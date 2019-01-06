@@ -91,7 +91,7 @@ xyz maths::PlaneIntersection(Plane* p, xyz* v1, xyz* v2)
 	xyz r, inter;
 	float t;
 
-	r = SetXYZ(v2->x - v1->x, v2->y - v1->y, v2->z - v1->z);
+	r = maths::SetXYZ(v2->x - v1->x, v2->y - v1->y, v2->z - v1->z);
 	
 	t = (-(p->d) - Dot(&(p->normal), v1)) / Dot(&(p->normal), &r);
 
@@ -139,10 +139,52 @@ xyz maths::SetXYZ(float x, float y, float z)
 	return newXYZ;
 }
 
-xyz maths::Scale(xyz vector, float scalar)
+xyz maths::SetXYZ(xyz* v)
 {
-	vector.x *= scalar;
-	vector.y *= scalar;
-	vector.z *= scalar;
-	return vector;
+	xyz newXYZ;
+	newXYZ.x = (*v).x;
+	newXYZ.y = (*v).y;
+	newXYZ.z = (*v).z;
+	return newXYZ;
+}
+
+xyz maths::ScaleXYZ(xyz* v, float scalar)
+{
+	xyz tmp;
+	tmp.x = (*v).x * scalar;
+	tmp.y = (*v).y * scalar;
+	tmp.z = (*v).z * scalar;
+	return tmp;
+}
+
+xyz maths::ScaleXYZ(xyz* v1, xyz* v2)
+{
+	xyz tmp;
+	tmp.x = (*v1).x * (*v2).x;
+	tmp.y = (*v1).y * (*v2).y;
+	tmp.z = (*v1).z * (*v2).z;
+	return tmp;
+}
+
+xyz maths::AddXYZ(xyz* v1, xyz* v2)
+{
+	xyz tmp;
+	tmp.x = (*v1).x + (*v2).x;
+	tmp.y = (*v1).y + (*v2).y;
+	tmp.z = (*v1).z + (*v2).z;
+	return tmp;
+}
+
+xyz maths::SubtractXYZ(xyz* v1, xyz* v2)
+{
+	xyz tmp;
+	tmp.x = (*v1).x - (*v2).x;
+	tmp.y = (*v1).y - (*v2).y;
+	tmp.z = (*v1).z - (*v2).z;
+	return tmp;
+}
+
+bool maths::CompareXYZ(xyz* v1, xyz* v2)
+{
+	return ((*v1).x == (*v2).x) && ((*v1).y == (*v2).y) && ((*v1).x == (*v2).z);
 }
