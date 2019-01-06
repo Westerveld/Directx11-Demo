@@ -1,13 +1,14 @@
 #pragma once
 #include "main.h"
 
+
 class GameManager
 {
 private:
-	ID3D11Device*					m_pD3DDevice;
-	ID3D11DeviceContext*			m_pImmediateContext;
-	IDXGISwapChain*					m_pSwapChain;
-	ID3D11RenderTargetView*			m_pBackBufferRTView;
+	ID3D11Device*					m_pD3DDevice = NULL;
+	ID3D11DeviceContext*			m_pImmediateContext = NULL;
+	IDXGISwapChain*					m_pSwapChain = NULL;
+	ID3D11RenderTargetView*			m_pBackBufferRTView = NULL;
 	ID3D11DepthStencilView*			m_pZBuffer;
 
 	ID3D11ShaderResourceView*		m_pTexture0;
@@ -75,12 +76,16 @@ public:
 
 	ID3D11RenderTargetView*	GetRenderTarget() { return m_pBackBufferRTView; }
 	void					SetRenderTarget(ID3D11RenderTargetView* target) { m_pBackBufferRTView = target; }
+	void					ReleaseRenderTarget() { if (m_pBackBufferRTView) m_pBackBufferRTView->Release(); }
 
 	ID3D11DepthStencilView*	GetZBuffer() { return m_pZBuffer; }
 	void					SetZBuffer(ID3D11DepthStencilView* zBuffer) { m_pZBuffer = zBuffer; }
+	void					ReleaseZBuffer() { if(m_pZBuffer) m_pZBuffer->Release(); }
+
 	
 #pragma endregion
-
-	HRESULT					ResizeWindow(LPARAM* lParam);
+	HRESULT					SetupDirectX();
+	//HRESULT					ResizeWindow(LPARAM* lParam); Doesnt work in this class, got it working in main.cpp instead
+	
 };
 
