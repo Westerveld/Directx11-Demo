@@ -30,12 +30,12 @@ VOut ModelVS(float4 position : POSITION, float2 texcoord : TEXCOORD, float3 norm
     float diffuse_amount    = dot(dirLightPos.xyz, normal);
     diffuse_amount          = saturate(diffuse_amount);
     output.color            = ambLightCol + (dirLightCol * diffuse_amount);
+	output.normal = normal;
 	return output;
 }
 
 
 float4 ModelPS(float4 position : SV_POSITION, float4 color : COLOR, float2 texcoord : TEXCOORD) : SV_TARGET
 {
-
 	return texture0.Sample(sampler0, texcoord) * color;
 }

@@ -3,7 +3,7 @@
 class Entity
 {
 protected:
-	xyz			m_gravity, m_position, m_rotation;
+	xyz			m_gravity, m_position, m_rotation, m_velocity, m_drag;
 
 	bool		m_touchingGround;
 	Scene_Node* m_node;
@@ -26,10 +26,16 @@ public:
 	void SetGravity(float x, float y,  float z);
 
 	xyz GetRotation() { return m_rotation; }
-	void SetRotation(xyz newRot) { m_rotation = newRot; }
+	void SetRotation(float x, float y, float z);
 
 	void SetTouchingGround(bool val) { m_touchingGround = val; }
 	bool GetTouchingGround() { return m_touchingGround; }
+
+	xyz GetVeloicty() { return m_velocity; }
+	void SetVelocity(float x, float y, float z);
+
+	xyz GetDrag() { return m_drag; }
+	void SetDrag(float x, float y, float z);
 #pragma endregion
 	
 };

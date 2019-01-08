@@ -200,7 +200,7 @@ void GameManager::LoadLevel (char* textFile)
 	m_pWall = new Scene_Node("Walls_Root");
 	m_pFloor = new Scene_Node("Floor");
 	m_pFloor->SetModel(m_pPlaneModel);
-	m_pFloor->SetYPos(-2.5f);
+	m_pFloor->SetYPos(0.0f);
 
 	if (textFile == NULL)
 	{
@@ -235,7 +235,7 @@ void GameManager::LoadLevel (char* textFile)
 					wall->SetModel(m_pWallModel);
 					wall->SetScale(0.2f);
 					wall->SetXPos(j*6);
-					wall->SetYPos(-2.5f);
+					wall->SetYPos(0.0f);
 					wall->SetZPos(i*6);
 					m_pWall->AddChildNode(wall);
 					m_pWalls.push_back(wall);
@@ -246,10 +246,10 @@ void GameManager::LoadLevel (char* textFile)
 				{
 					m_pPlayerNode = new Scene_Node("Player");
 					m_pPlayerNode->SetModel(m_pCubeModel);
-					m_pPlayer = new Player(m_pPlayerNode, m_pCam, 5.0f);
+					m_pPlayer = new Player(m_pPlayerNode, m_pCam, 25.0f);
 
-					m_pPlayer->SetPosition((j * 6.0f), 0.0f, (i * 6.0f));
-					m_pPlayer->SetGravity(0.0f, -9.82f, 0.0f);
+					m_pPlayer->SetPosition((j * 6.0f), 1.0f, (i * 6.0f));
+					m_pPlayer->SetGravity(0.0f, -9.81f, 0.0f);
 					UpdatePlayerNode();
 
 					m_pCameraNode = new Scene_Node("Camera");
@@ -391,6 +391,11 @@ void GameManager::CheckInputs()
 			m_pPlayer->MoveRight(deltaTime);
 			UpdatePlayerNode();
 		}
+	}
+
+	if (m_pInput->IsKeyPressed(DIK_SPACE))
+	{
+		m_pPlayer->Jump(deltaTime * 30.0f);
 	}
 
 	if (m_pInput->IsKeyPressed(DIK_8))

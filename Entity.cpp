@@ -5,6 +5,8 @@
 Entity::Entity(Scene_Node* myNode)
 {
 	m_node = myNode;
+	SetVelocity(0.0f, 0.0f, 0.0f);
+	SetDrag(0.0f, 0.0f, 0.0f);
 }
 
 
@@ -14,31 +16,37 @@ Entity::~Entity()
 
 void Entity::Update(Scene_Node* rootNode, float delta)
 {
-	//Update our position based on gravity if we arent touching the ground
+	m_velocity.x /= 1 + m_drag.x * delta;
+	m_velocity.y /= 1 + m_drag.y * delta;
+	m_velocity.z /= 1 + m_drag.z * delta;
 
+	m_velocity.y += m_gravity.y * delta;
+	if (m_node->CheckCollisionRay(m_position.x, m_position.y, m_position.z, 0.0f, -0.5f, 0.0f))
+	{
+		m_velocity.y = 0;
+	}
+	m_position.x += m_velocity.x * delta;
+	m_position.z += m_velocity.z * delta;
+	UpdateNodePosition();
 	XMMATRIX identity = XMMatrixIdentity();
 	rootNode->UpdateCollisionTree(&identity, 1.0f);
-
 	if (m_node->CheckCollision(rootNode))
 	{
-		m_touchingGround = true;
-	}
-	else
-	{
-		m_position = maths::AddXYZ(&m_position, &maths::ScaleXYZ(&m_gravity, delta * 5));
+		m_position.x -= m_velocity.x * delta;
+		m_position.z -= m_velocity.z * delta;
 		UpdateNodePosition();
-		m_touchingGround = false;
 	}
+	
 }
 
 void Entity::Jump(float jumpValue)
 {
-	if (m_touchingGround)
+	if (m_node->CheckCollisionRay(m_position.x, m_position.y, m_position.z, 0.0f, -1.0f, 0.0f))
 	{
-		m_position.y += jumpValue;
-		UpdateNodePosition();
+		m_velocity.y = jumpValue;
 		m_touchingGround = false;
 	}
+	
 }
 
 void Entity::Move(float x, float z)
@@ -48,6 +56,7 @@ void Entity::Move(float x, float z)
 	UpdateNodePosition();
 }
 
+#pragma region Sets and updates
 void Entity::UpdateNodePosition()
 {
 	m_node->SetXPos(m_position.x);
@@ -67,6 +76,7 @@ void Entity::SetPosition(float x, float y, float z)
 	m_position.x = x;
 	m_position.y = y;
 	m_position.z = z;
+	UpdateNodePosition();
 }
 
 void Entity::SetGravity(float x, float y, float z)
@@ -75,3 +85,26 @@ void Entity::SetGravity(float x, float y, float z)
 	m_gravity.y = y;
 	m_gravity.z = z;
 }
+
+void Entity::SetRotation(float x, float y, float z)
+{
+	m_rotation.x = x;
+	m_rotation.y = y;
+	m_rotation.z = z;
+	UpdateNodeRotation();
+}
+
+void Entity::SetVelocity(float x, float y, float z)
+{
+	m_velocity.x = x;
+	m_velocity.y = y;
+	m_velocity.z = z;
+}
+
+void Entity::SetDrag(float x, float y, float z)
+{
+	m_drag.x = x;
+	m_drag.y = y;
+	m_drag.z = z;
+}
+#pragma endregion

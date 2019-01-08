@@ -6,10 +6,12 @@ class Player :
 private:
 	Camera*			m_Cam;
 	float			m_speed;
-	xyz				m_forward, m_right;
+	xyz				m_forward, m_right, m_input;
 
 	void			CalculateForwardVector();
 	void			CalculateRightVector();
+
+	void			NormalizeInput();
 public:
 	Player(Scene_Node* myNode, Camera* cam, float speed);
 	~Player();

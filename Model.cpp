@@ -227,6 +227,7 @@ void Model::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection)
 	model_cbValues.dirLightCol = m_lights->GetDirLightCol();;
 	XMMATRIX transpose;
 	transpose = XMMatrixTranspose((*world));
+	//Calculate the directional light position in relation to this model
 	model_cbValues.dirLightPos = XMVector3Transform(m_lights->GetDirLightPos(), transpose);
 	model_cbValues.dirLightPos = XMVector3Normalize(model_cbValues.dirLightPos);
 

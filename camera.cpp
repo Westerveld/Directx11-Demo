@@ -55,6 +55,10 @@ void Camera::RotateCamera(float yawDegrees, float pitchDegrees)
 				m_camera_rotation_pitch = -179.9f;
 			break;
 		case CameraType::ThirdPerson:
+			if (m_camera_rotation_pitch < -75.0f)
+				m_camera_rotation_pitch = -75.0f;
+			if (m_camera_rotation_pitch > 75.0f)
+				m_camera_rotation_pitch = 75.0f;
 			break;
 	}
 }
@@ -75,6 +79,7 @@ void Camera::Forward(float distance)
 		m_z += (XMVectorGetZ(m_forward) * distance);
 		break;
 	case CameraType::ThirdPerson:
+		//Handled in player class
 		break;
 	}
 }
@@ -94,6 +99,7 @@ void Camera::Up(float distance)
 	
 		break;
 	case CameraType::ThirdPerson:
+		//Handled in player class
 		break;
 	}
 }
@@ -113,6 +119,7 @@ void Camera::Strafe(float distance)
 		m_z += (XMVectorGetZ(m_right) * distance);
 		break;
 	case CameraType::ThirdPerson:
+		//Handled in player class
 		break;
 	}
 }

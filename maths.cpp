@@ -188,3 +188,15 @@ bool maths::CompareXYZ(xyz* v1, xyz* v2)
 {
 	return ((*v1).x == (*v2).x) && ((*v1).y == (*v2).y) && ((*v1).x == (*v2).z);
 }
+
+xyz maths::NormaliseXYZ(xyz* v1)
+{
+	xyz newVector;
+	float mag = ((*v1).x * (*v1).x) + ((*v1).y * (*v1).y) + ((*v1).z * (*v1).z);
+	mag = sqrt(mag);
+	
+	newVector.x = (*v1).x / mag;
+	newVector.y = (*v1).y / mag;
+	newVector.z = (*v1).z / mag;
+	return newVector;
+}
