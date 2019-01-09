@@ -102,7 +102,7 @@ HRESULT GameManager::InitialiseGraphics()
 	}
 #pragma endregion
 
-	m_pCam = new Camera(0.0, 0.0, -0.5, 0.0);
+	m_pCam = new Camera(0.0, 0.0, -0.5, 0.0, 1.0f, 45.0f);
 	m_pCam->ChangeCameraType(CameraType::FirstPerson);
 
 	m_pText = new Text2D("assets/font1.bmp", m_pD3DDevice, m_pImmediateContext);
@@ -413,7 +413,20 @@ void GameManager::CheckInputs()
 		m_pCam->ChangeCameraType(ThirdPerson);
 		UpdateCameraNode();
 	}
+	if (m_pInput->IsKeyPressed(DIK_MINUS))
+	{
+		m_pCam->ChangeCameraType(TopDown);
+		UpdateCameraNode();
+	}
 
+	if (m_pInput->GetMouseScroll() > 0)
+	{
+		m_pCam->SetFollowDistance(m_pCam->GetFollowDistance() + .10f);
+	}
+	if (m_pInput->GetMouseScroll() < 0)
+	{
+		m_pCam->SetFollowDistance(m_pCam->GetFollowDistance() - .1f);
+	}
 	 
 	m_pCam->RotateCamera(m_pInput->GetMouseX() * 0.1f, m_pInput->GetMouseY() * 0.1f);
 }

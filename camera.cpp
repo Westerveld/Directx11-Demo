@@ -1,6 +1,6 @@
 #include "Camera.h"
 
-Camera::Camera(float x, float y, float z, float camera_rotation)
+Camera::Camera(float x, float y, float z, float camera_rotation, float minDistance, float maxDistance)
 {
 	//Set the position;
 	m_x = x;
@@ -15,6 +15,10 @@ Camera::Camera(float x, float y, float z, float camera_rotation)
 	m_camera_rotation_yaw = camera_rotation;
 	m_camera_rotation_pitch = 0.0;
 	m_rotationMatrix = XMMatrixRotationRollPitchYaw(m_camera_rotation_pitch, m_camera_rotation_yaw, 0);
+
+	//Set up our distance to target min and max
+	m_minDistance = minDistance;
+	m_maxDistance = maxDistance;
 
 
 	//Set up the default vectors
@@ -37,28 +41,35 @@ void Camera::RotateCamera(float yawDegrees, float pitchDegrees)
 	m_camera_rotation_yaw += (yawDegrees); 
 	m_camera_rotation_pitch += (pitchDegrees); 
 	
+	if (m_camera_rotation_yaw > 360.0f)
+		m_camera_rotation_yaw = -360.0f;
+	if (m_camera_rotation_yaw < -360.0f)
+		m_camera_rotation_yaw = 360.0f;
 	
 	switch (m_camType)
 	{
-		case CameraType::FirstPerson:
-			//Clamp the pitch to stop the camera moving up and down by holding one key
+		case FirstPerson:
+			//Clamp the pitch 
 			if (m_camera_rotation_pitch < -55.0f)
 				m_camera_rotation_pitch = -55.0f;
 			if (m_camera_rotation_pitch > 55.0f )
 				m_camera_rotation_pitch = 55.0f;
 			break;
-		case CameraType::FreeLook:
+		case FreeLook:
 			//Allow the camera to fully rotate 360 degrees by changing the value to a positive if it reaches the limits. This helps prevent gimble lock
 			if (m_camera_rotation_pitch < -180.0f )
 				m_camera_rotation_pitch = 179.9f ;
 			if (m_camera_rotation_pitch > 180.0f)
 				m_camera_rotation_pitch = -179.9f;
 			break;
-		case CameraType::ThirdPerson:
+		case ThirdPerson:
 			if (m_camera_rotation_pitch < -75.0f)
 				m_camera_rotation_pitch = -75.0f;
 			if (m_camera_rotation_pitch > 75.0f)
 				m_camera_rotation_pitch = 75.0f;
+			break;
+		case TopDown:
+			m_camera_rotation_pitch = 0;
 			break;
 	}
 }
@@ -69,17 +80,19 @@ void Camera::Forward(float distance)
 {
 	switch (m_camType)
 	{
-	case CameraType::FirstPerson:
+	case FirstPerson:
 		m_x += distance * m_dx;
 		m_z += distance * m_dz;
 		break;
-	case CameraType::FreeLook:
+	case FreeLook:
 		m_x += (XMVectorGetX(m_forward) * distance);
 		m_y += (XMVectorGetY(m_forward) * distance);
 		m_z += (XMVectorGetZ(m_forward) * distance);
 		break;
-	case CameraType::ThirdPerson:
+	case ThirdPerson:
 		//Handled in player class
+		break;
+	case TopDown:
 		break;
 	}
 }
@@ -89,17 +102,18 @@ void Camera::Up(float distance)
 {
 	switch (m_camType)
 	{
-	case CameraType::FirstPerson:
+	case FirstPerson:
 		m_y += distance;
 		break;
-	case CameraType::FreeLook:
+	case FreeLook:
 		m_x += (XMVectorGetX(m_up) * distance);	// new x
 		m_y += (XMVectorGetY(m_up) * distance);	// new y 
 		m_z += (XMVectorGetZ(m_up) * distance);	// new z
-	
 		break;
-	case CameraType::ThirdPerson:
+	case ThirdPerson:
 		//Handled in player class
+		break;
+	case TopDown:
 		break;
 	}
 }
@@ -109,17 +123,19 @@ void Camera::Strafe(float distance)
 {
 	switch (m_camType)
 	{
-	case CameraType::FirstPerson:
+	case FirstPerson:
 		m_x += XMVectorGetX(m_right) * -distance;
 		m_z += XMVectorGetZ(m_right) * -distance;
 		break;
-	case CameraType::FreeLook:
+	case FreeLook:
 		m_x += (XMVectorGetX(m_right) * distance);
 		m_y += (XMVectorGetY(m_right) * distance);
 		m_z += (XMVectorGetZ(m_right) * distance);
 		break;
-	case CameraType::ThirdPerson:
+	case ThirdPerson:
 		//Handled in player class
+		break;
+	case TopDown:
 		break;
 	}
 }
@@ -127,6 +143,8 @@ void Camera::Strafe(float distance)
 //Set up the view matrix using the position, look at and up
 XMMATRIX Camera::GetViewMatrix()
 {
+	if (m_camType == TopDown)
+		return XMMatrixLookAtLH(m_position, m_target, m_forward);
 	return XMMatrixLookAtLH(m_position, m_target, m_up);
 }
 
@@ -185,11 +203,13 @@ void Camera::Update()
 			m_rotationMatrix = XMMatrixRotationRollPitchYaw(XMConvertToRadians(-m_camera_rotation_pitch), XMConvertToRadians(m_camera_rotation_yaw), 0);
 			m_position = XMVector3TransformNormal(m_dForward, m_rotationMatrix);
 			m_position = XMVector3Normalize(m_position);
+
+			//Set our position of the camera
+			m_position = (m_position * m_followDistance) + m_target;
+
 			m_x = XMVectorGetX(m_position);
 			m_y = XMVectorGetY(m_position);
 			m_z = XMVectorGetZ(m_position);
-			//Set our position of the camera
-			m_position = (m_position * m_followDistance) + m_target;
 
 			//Calculate our foward vector
 			m_forward = XMVector3Normalize(m_target - m_position);
@@ -204,6 +224,24 @@ void Camera::Update()
 			//Calculate our up vector
 			m_up = XMVector3Cross(XMVector3Normalize(m_position - m_target), m_right);
 
+		}
+		break;
+	case TopDown:
+		{
+			m_target = XMVectorSet(m_followTarget->GetXPos(), m_followTarget->GetYPos(), m_followTarget->GetZPos(), 0);
+			
+			//No pitch rotation for top down
+			m_rotationMatrix = XMMatrixRotationRollPitchYaw(0, XMConvertToRadians(m_camera_rotation_yaw), 0);
+			m_position = XMVector3TransformNormal(m_dForward, m_rotationMatrix);
+			m_position = XMVector3Normalize(m_position);
+			m_position = XMVectorSet(XMVectorGetX(m_target), XMVectorGetY(m_target) + m_followDistance, XMVectorGetZ(m_target), 0);
+			m_x = XMVectorGetX(m_position);
+			m_y = XMVectorGetY(m_position);
+			m_z = XMVectorGetZ(m_position);
+
+			m_forward = m_dForward;
+			m_up = m_dUp;
+			m_right = XMVectorSet(-XMVectorGetZ(m_forward), 0.0f, XMVectorGetX(m_forward), 0.0f);
 		}
 		break;
 	}

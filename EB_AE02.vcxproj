@@ -34,6 +34,7 @@
     <ClCompile Include="LightManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="maths.cpp" />
+    <ClCompile Include="MiniMap.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="objfilemodel.cpp" />
     <ClCompile Include="ParticleFactory.cpp" />
@@ -52,6 +53,7 @@
     <ClInclude Include="LightManager.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="maths.h" />
+    <ClInclude Include="MiniMap.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="objfilemodel.h" />
     <ClInclude Include="ParticleFactory.h" />

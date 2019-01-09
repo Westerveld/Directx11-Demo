@@ -5,12 +5,14 @@
 
 #include "Scene_Node.h"
 
-enum CameraType{FirstPerson, FreeLook, ThirdPerson};
+enum CameraType{FirstPerson, FreeLook, ThirdPerson, TopDown};
 
 class Camera
 {
 private:
 	float m_x, m_y, m_z, m_dx, m_dy, m_dz, m_camera_rotation_yaw, m_camera_rotation_pitch;
+
+	float m_minDistance, m_maxDistance;
 	XMVECTOR m_position, m_target, m_up, m_forward, m_right, m_dForward, m_dRight, m_dUp;
 
 	XMMATRIX m_rotationMatrix;
@@ -21,7 +23,7 @@ private:
 	Scene_Node* m_followTarget;
 	float m_followDistance;
 public:
-	Camera(float x, float y, float z, float camera_rotation);
+	Camera(float x, float y, float z, float camera_rotation, float minDistance, float maxDistance);
 	~Camera();
 	void RotateCamera(float yawDegrees, float pitchDegrees);
 	void Forward(float distance);
@@ -30,6 +32,7 @@ public:
 	void Update(void);
 	XMMATRIX GetViewMatrix();
 	void ChangeCameraType(CameraType newType) { m_camType = newType; }
+	CameraType GetCameraType(void) { return m_camType; }
 
 	//Return positions
 	float GetX() { return m_x; }
@@ -45,7 +48,8 @@ public:
 	void SetPosition(float x, float y, float z);
 
 	void SetTarget(Scene_Node* target) { m_followTarget = target; }
-	void SetFollowDistance(float value) { m_followDistance = value; }
+	void SetFollowDistance(float value) { if(value > m_minDistance && value < m_maxDistance) m_followDistance = value; }
+	float GetFollowDistance(void) { return m_followDistance; }
 
 	xyz GetForward()	{ return maths::SetXYZ(XMVectorGetX(m_forward), XMVectorGetY(m_forward), XMVectorGetZ(m_forward)); }
 	xyz GetRight()		{ return maths::SetXYZ(XMVectorGetX(m_right), XMVectorGetY(m_right), XMVectorGetZ(m_right)); }
