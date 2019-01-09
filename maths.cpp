@@ -53,7 +53,7 @@ xyz maths::Normal(xyz* v1, xyz* v2, xyz* v3)
 	newCross = Cross(&newV1, &newV2);
 
 	//Work out the magnitude of the cross product
-	float mag = sqrt(newCross.x * newCross.x + newCross.y * newCross.y + newCross.z * newCross.z);
+	float mag = sqrt(MagnitudeSqr(&newCross));
 
 	//Divide the vector by the magnitude
 	newCross.x /= mag;
@@ -91,7 +91,9 @@ xyz maths::PlaneIntersection(Plane* p, xyz* v1, xyz* v2)
 	xyz r, inter;
 	float t;
 
-	r = maths::SetXYZ(v2->x - v1->x, v2->y - v1->y, v2->z - v1->z);
+	r.x = v2->x - v1->x;
+	r.y = v2->y - v1->y;
+	r.z = v2->z - v1->z;
 	
 	t = (-(p->d) - Dot(&(p->normal), v1)) / Dot(&(p->normal), &r);
 
@@ -130,6 +132,7 @@ bool maths::InTriangle(xyz* t0, xyz* t1, xyz* t2, xyz* point)
 	return !(hasNeg && hasPos);
 }
 
+#pragma region XYZ helpers
 xyz maths::SetXYZ(float x, float y, float z)
 {
 	xyz newXYZ;
@@ -200,3 +203,4 @@ xyz maths::NormaliseXYZ(xyz* v1)
 	newVector.z = (*v1).z / mag;
 	return newVector;
 }
+#pragma endregion
