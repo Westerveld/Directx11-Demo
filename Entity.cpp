@@ -16,27 +16,7 @@ Entity::~Entity()
 
 void Entity::Update(Scene_Node* rootNode, float delta)
 {
-	m_velocity.x /= 1 + m_drag.x * delta;
-	m_velocity.y /= 1 + m_drag.y * delta;
-	m_velocity.z /= 1 + m_drag.z * delta;
-
-	m_velocity.y += m_gravity.y * delta;
-	if (m_node->CheckCollisionRay(m_position.x, m_position.y, m_position.z, 0.0f, -0.5f, 0.0f))
-	{
-		m_velocity.y = 0;
-	}
-	m_position.x += m_velocity.x * delta;
-	m_position.z += m_velocity.z * delta;
-	UpdateNodePosition();
-	XMMATRIX identity = XMMatrixIdentity();
-	rootNode->UpdateCollisionTree(&identity, 1.0f);
-	if (m_node->CheckCollision(rootNode))
-	{
-		m_position.x -= m_velocity.x * delta;
-		m_position.z -= m_velocity.z * delta;
-		UpdateNodePosition();
-	}
-	
+		
 }
 
 void Entity::Jump(float jumpValue)

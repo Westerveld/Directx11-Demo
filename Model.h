@@ -17,7 +17,7 @@ struct SHINYMODEL_CONSTANT_BUFFER
 };
 
 
-enum ModelType{Normal, Shiny};
+enum ModelType{Normal, Shiny, Dissolve};
 enum CollisionType{Sphere, Box, Mesh};
 class Model
 {

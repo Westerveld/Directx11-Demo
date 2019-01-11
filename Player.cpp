@@ -13,12 +13,11 @@ Player::~Player()
 {
 }
 
-void Player::Update(Scene_Node* rootNode, float delta)
+void Player::Update()
 {
 	CalculateForwardVector();
 	CalculateRightVector();
 	
-	Entity::Update(rootNode, delta);
 }
 
 void Player::MoveForward(float distance)
@@ -45,6 +44,7 @@ void Player::CalculateForwardVector()
 
 void Player::CalculateRightVector()
 {
+	
 	xyz camRight = m_Cam->GetRight();
 	camRight.y = m_position.y;
 	m_right = maths::SetXYZ(&camRight);

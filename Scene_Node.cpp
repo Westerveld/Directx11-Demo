@@ -19,15 +19,16 @@ Scene_Node::Scene_Node(string name)
 
 Scene_Node::~Scene_Node()
 {
+	if (m_model) m_model = nullptr;
 	if (m_children.size() > 0)
 	{
-		for (std::vector<Scene_Node*>::iterator itr = m_children.begin(); itr != m_children.end(); ++itr)
+		while (!m_children.empty())
 		{
-			delete (*itr);
+			delete m_children.back();
+			m_children.pop_back();
 		}
 		m_children.clear();
 	}
-
 }
 
 void Scene_Node::AddChildNode(Scene_Node* node)
@@ -196,12 +197,9 @@ bool Scene_Node::CheckCollision(Scene_Node* compareTree, Scene_Node* objectTreeR
 			float radius = compareTree->m_model->GetBoundingSphereRadius() * compareTree->m_worldScale;
 			//Check the box against positions on the sphere
 
-			if ((object2.x + radius) > min.x && 
-				(object2.x - radius) < max.x &&
-				(object2.y + radius) > min.y &&
-				(object2.y - radius) < max.y &&
-				(object2.z + radius) > min.z &&
-				(object2.z - radius) < max.z)
+			if ((object2.x + radius) > min.x && (object2.x - radius) < max.x &&
+				(object2.y + radius) > min.y &&	(object2.y - radius) < max.y &&
+				(object2.z + radius) > min.z &&	(object2.z - radius) < max.z)
 			{
 				return true;
 			}
@@ -219,15 +217,13 @@ bool Scene_Node::CheckCollision(Scene_Node* compareTree, Scene_Node* objectTreeR
 			max = maths::AddXYZ(&object2, &size);
 
 			float radius = m_model->GetBoundingSphereRadius() * m_worldScale;
-			if ((object1.x + radius) > min.x &&
-				(object1.x - radius) < max.x &&
-				(object1.y + radius) > min.y &&
-				(object1.y - radius) < max.y &&
-				(object1.z - radius) > min.z &&
-				(object1.z + radius) < max.z)
+			if ((object1.x + radius) > min.x && (object1.x - radius) < max.x &&
+				(object1.y + radius) > min.y &&	(object1.y - radius) < max.y &&
+				(object1.z + radius) > min.z &&	(object1.z - radius) < max.z)
 			{
 				return true;
 			}
+
 		}
 	}
 
@@ -244,6 +240,122 @@ bool Scene_Node::CheckCollision(Scene_Node* compareTree, Scene_Node* objectTreeR
 	}
 
 	return false;
+}
+
+Scene_Node* Scene_Node::CheckCollisionSN(Scene_Node* compareTree)
+{
+	return CheckCollisionSN(compareTree, this);
+}
+
+Scene_Node* Scene_Node::CheckCollisionSN(Scene_Node* compareTree, Scene_Node* objectTreeRoot)
+{
+	if (objectTreeRoot == compareTree)
+		return false;
+
+	if (m_model && compareTree->m_model)
+	{
+		XMVECTOR v1 = GetWorldCentre();
+		XMVECTOR v2 = compareTree->GetWorldCentre();
+
+		xyz object1, object2;
+
+		object1 = maths::SetXYZ(XMVectorGetX(v1), XMVectorGetY(v1), XMVectorGetZ(v1));
+		object2 = maths::SetXYZ(XMVectorGetX(v2), XMVectorGetY(v2), XMVectorGetZ(v2));
+
+		//Sphere on Sphere collision
+		if (m_model->GetCollisionType() == CollisionType::Sphere && compareTree->m_model->GetCollisionType() == CollisionType::Sphere)
+		{
+			float dx = object1.x - object2.x;
+			float dy = object1.y - object2.y;
+			float dz = object1.z - object2.z;
+
+			if (sqrt(dx*dx + dy * dy + dz * dz) < (compareTree->m_model->GetBoundingSphereRadius() * compareTree->m_worldScale) + (this->m_model->GetBoundingSphereRadius() * m_worldScale))
+			{
+
+				return compareTree;
+			}
+		}
+		//Box on Box collision
+		else if (m_model->GetCollisionType() == CollisionType::Box && compareTree->m_model->GetCollisionType() == CollisionType::Box)
+		{
+			xyz object1Size, object2Size;
+			object1Size = maths::ScaleXYZ(&m_model->GetBoundingBoxSize(), m_worldScale);
+			object2Size = maths::ScaleXYZ(&compareTree->m_model->GetBoundingBoxSize(), compareTree->m_worldScale);
+
+			//Calculate min and max for each object
+			xyz min1, max1, min2, max2;
+
+			min1 = maths::SubtractXYZ(&object1, &object1Size);
+			max1 = maths::AddXYZ(&object1, &object1Size);
+
+			min2 = maths::SubtractXYZ(&object2, &object2Size);
+			max2 = maths::AddXYZ(&object2, &object2Size);
+
+			if (max1.x > min2.x && min1.x < max2.x &&
+				max1.y > min2.y && min1.y < max2.y &&
+				max1.z > min2.z && min1.z < max2.z)
+			{
+				std::cout << "Collided with " << compareTree->m_name;
+				return compareTree;
+			}
+		}
+		//Box on Sphere collision
+		else if (m_model->GetCollisionType() == CollisionType::Box && compareTree->m_model->GetCollisionType() == CollisionType::Sphere)
+		{
+			//Calculate min and max of box
+			xyz size;
+			size = maths::ScaleXYZ(&m_model->GetBoundingBoxSize(), m_worldScale);
+			xyz min, max;
+
+			min = maths::SubtractXYZ(&object1, &size);
+			max = maths::AddXYZ(&object1, &size);
+
+			float radius = compareTree->m_model->GetBoundingSphereRadius() * compareTree->m_worldScale;
+			//Check the box against positions on the sphere
+
+			if ((object2.x + radius) > min.x && (object2.x - radius) < max.x &&
+				(object2.y + radius) > min.y && (object2.y - radius) < max.y &&
+				(object2.z + radius) > min.z && (object2.z - radius) < max.z)
+			{
+				return compareTree;
+			}
+
+		}
+		//Sphere on Box collision
+		else if (m_model->GetCollisionType() == CollisionType::Sphere && compareTree->m_model->GetCollisionType() == CollisionType::Box)
+		{
+			//Calculate min and max of box
+			xyz size;
+			size = maths::ScaleXYZ(&compareTree->m_model->GetBoundingBoxSize(), compareTree->m_worldScale);
+			xyz min, max;
+
+			min = maths::SubtractXYZ(&object2, &size);
+			max = maths::AddXYZ(&object2, &size);
+
+			float radius = m_model->GetBoundingSphereRadius() * m_worldScale;
+			if ((object1.x + radius) > min.x && (object1.x - radius) < max.x &&
+				(object1.y + radius) > min.y && (object1.y - radius) < max.y &&
+				(object1.z + radius) > min.z && (object1.z - radius) < max.z)
+			{
+				return compareTree;
+			}
+
+		}
+
+	}
+	for (size_t i = 0; i < compareTree->m_children.size(); i++)
+	{
+		if (CheckCollisionSN(compareTree->m_children[i], objectTreeRoot) != NULL)
+			return CheckCollisionSN(compareTree->m_children[i], objectTreeRoot);
+	}
+
+	for (size_t i = 0; i < m_children.size(); i++)
+	{
+		if (m_children[i]->CheckCollisionSN(compareTree, objectTreeRoot) != NULL)
+			return m_children[i]->CheckCollisionSN(compareTree, objectTreeRoot);
+	}
+
+	return NULL;
 }
 
 XMVECTOR Scene_Node::GetWorldCentre(void)

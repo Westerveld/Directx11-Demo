@@ -11,12 +11,11 @@ private:
 	void			CalculateForwardVector();
 	void			CalculateRightVector();
 
-	void			NormalizeInput();
 public:
 	Player(Scene_Node* myNode, Camera* cam, float speed);
 	~Player();
 
-	void Update(Scene_Node* rootNode, float delta);
+	void Update();
 	void MoveForward(float distance);
 	void MoveRight(float distance);
 };

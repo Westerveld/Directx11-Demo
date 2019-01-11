@@ -77,6 +77,7 @@ public:
 	//Texture creation
 	HRESULT AddTexture(char* filename);
 
+#pragma region Getters and Setters
 	//m_x functions
 	void SetXPos(float value) { m_x = value; }
 	void IncXPos(float value) { m_x += value; }
@@ -111,6 +112,7 @@ public:
 	void SetScale(float value) { m_scale = value; }
 	void IncScale(float value) { m_scale += value; }
 	float GetScale() { return m_scale; }
+#pragma endregion
 
 	//Custom Shader
 	HRESULT LoadDefaultShaders();

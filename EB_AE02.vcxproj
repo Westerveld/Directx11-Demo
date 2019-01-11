@@ -36,6 +36,7 @@
     <ClCompile Include="maths.cpp" />
     <ClCompile Include="MiniMap.cpp" />
     <ClCompile Include="Model.cpp" />
+    <ClCompile Include="Movable.cpp" />
     <ClCompile Include="objfilemodel.cpp" />
     <ClCompile Include="ParticleFactory.cpp" />
     <ClCompile Include="GameManager.cpp" />
@@ -55,6 +56,7 @@
     <ClInclude Include="maths.h" />
     <ClInclude Include="MiniMap.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="Movable.h" />
     <ClInclude Include="objfilemodel.h" />
     <ClInclude Include="ParticleFactory.h" />
     <ClInclude Include="GameManager.h" />
@@ -99,6 +101,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
+    <CLRSupport>false</CLRSupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>

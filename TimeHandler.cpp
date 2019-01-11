@@ -36,6 +36,7 @@ void TimeHandler::UpdateTimer()
 		m_frameCount = 0;
 		StartTimer();
 	}
+	m_frameTime = GetFrameTime();
 
 }
 

@@ -3,10 +3,20 @@
 class Enemy :
 	public Entity
 {
+private:
+	std::vector<xyz>	m_waypoints;
+	int					m_currentWaypoint;
+	float				m_moveSpeed;
+
+	void				Move(float delta);
+	void				NextWaypoint();
+	bool				AtWaypoint();
 public:
-	Enemy(Scene_Node* rootNode);
+	Enemy(Scene_Node* rootNode, float speed);
 	~Enemy();
 
 	void Update(Scene_Node* rootNode, float delta);
+	void AddWaypoint(float x, float y, float z);
+
 };
 

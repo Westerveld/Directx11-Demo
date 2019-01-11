@@ -18,7 +18,6 @@ private:
 
 	ID3D11SamplerState*				m_pSampler0;
 
-	class TimeHandler				*m_pTimer;
 	LightManager*					m_pLights;
 	Camera*							m_pCam;
 
@@ -28,6 +27,7 @@ private:
 	InputHandler*					m_pInput;
 	class Player*					m_pPlayer;
 	class Enemy*					m_pEnemy;
+	class Movable*					m_pMovable;
 	HINSTANCE*						m_phInst;
 	HWND*							m_phWnd;
 
@@ -41,19 +41,20 @@ private:
 #pragma region Level Objects
 	Scene_Node*						m_pRootNode;
 	Scene_Node*						m_pFloor;
-	Scene_Node*						m_pWall;
-	std::vector<Scene_Node*>		m_pWalls;
+	Scene_Node*						m_pWallRoot;
 	Scene_Node*						m_pSphere;
 	Scene_Node*						m_pPlayerNode;
 	Scene_Node*						m_pCameraNode;
 	Scene_Node*						m_pEnemyNode;
+	Scene_Node*						m_pMoveableNode;
 #pragma endregion
 	float							m_pScreenHeight, m_pScreenWidth;
 
 	void							UpdateCameraNode();
-	void							UpdatePlayerNode();
 	std::vector<std::string>		m_pLevel;
 public:
+	class TimeHandler				*m_pTimer;
+
 	GameManager(float height, float width, HWND* hWnd, HINSTANCE* hInst);
 	~GameManager();
 	void LoadLevel(char* textFile);
@@ -81,11 +82,10 @@ public:
 	ID3D11DepthStencilView*	GetZBuffer() { return m_pZBuffer; }
 	void					SetZBuffer(ID3D11DepthStencilView* zBuffer) { m_pZBuffer = zBuffer; }
 	void					ReleaseZBuffer() { if(m_pZBuffer) m_pZBuffer->Release(); }
-
 	
 #pragma endregion
 	HRESULT					SetupDirectX();
-	//HRESULT					ResizeWindow(LPARAM* lParam); Doesnt work in this class, got it working in main.cpp instead
-	
+	//HRESULT				ResizeWindow(LPARAM* lParam); Doesnt work in this class, got it working in main.cpp instead
+
 };
 

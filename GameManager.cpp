@@ -22,9 +22,12 @@ GameManager::GameManager(float height, float width, HWND* hWnd, HINSTANCE* hInst
 
 }
 
-
+//Game Clean Up
 GameManager::~GameManager()
 {
+	if (m_pEnemy)				delete m_pEnemy;
+	if (m_pPlayer)				delete m_pPlayer;
+	if (m_pRootNode)			delete m_pRootNode;
 	if (m_pParticles)			delete m_pParticles;
 	if (m_pWallModel)			delete m_pWallModel;
 	if (m_pSphereModel)			delete m_pSphereModel;
@@ -197,7 +200,7 @@ HRESULT GameManager::InitialiseGraphics()
 void GameManager::LoadLevel (char* textFile)
 {
 	m_pRootNode = new Scene_Node("Root");
-	m_pWall = new Scene_Node("Walls_Root");
+	m_pWallRoot = new Scene_Node("Walls_Root");
 	m_pFloor = new Scene_Node("Floor");
 	m_pFloor->SetModel(m_pPlaneModel);
 	m_pFloor->SetYPos(0.0f);
@@ -237,8 +240,7 @@ void GameManager::LoadLevel (char* textFile)
 					wall->SetXPos(j*6);
 					wall->SetYPos(0.0f);
 					wall->SetZPos(i*6);
-					m_pWall->AddChildNode(wall);
-					m_pWalls.push_back(wall);
+					m_pWallRoot->AddChildNode(wall);
 				}
 				break;
 				//Player
@@ -250,7 +252,7 @@ void GameManager::LoadLevel (char* textFile)
 
 					m_pPlayer->SetPosition((j * 6.0f), 1.0f, (i * 6.0f));
 					m_pPlayer->SetGravity(0.0f, -9.81f, 0.0f);
-					UpdatePlayerNode();
+					//UpdatePlayerNode();
 
 					m_pCameraNode = new Scene_Node("Camera");
 					m_pCam->SetPosition(j*6, 0, i*6);
@@ -261,8 +263,6 @@ void GameManager::LoadLevel (char* textFile)
 					UpdateCameraNode();
 
 
-					m_pRootNode->AddChildNode(m_pPlayerNode);
-					m_pRootNode->AddChildNode(m_pCameraNode);
 
 					XMMATRIX identity = XMMatrixIdentity();
 
@@ -272,12 +272,25 @@ void GameManager::LoadLevel (char* textFile)
 				//Enemy
 				case 'E':
 				{
-
+					m_pEnemyNode = new Scene_Node("Enemy");
+					m_pEnemyNode->SetModel(m_pSphereModel);
+					m_pEnemyNode->SetScale(0.5f);
+					m_pEnemy = new Enemy(m_pEnemyNode, 5.0f);
+					m_pEnemy->SetPosition((j * 6.0f), 1.5f, (i * 6.0f));
+					m_pEnemy->AddWaypoint((j * 6.0f), 1.5f, (i * 6.0f));
+					
 				}
+				break;
 				//Enemy Waypoint
 				case '*':
 				{
-
+					m_pEnemy->AddWaypoint((j * 6.0f), 1.5f, (i * 6.0f));
+				}
+				break;
+				//Movable Object
+				case 'M':
+				{
+					m_p
 				}
 			}
 		}
@@ -285,8 +298,10 @@ void GameManager::LoadLevel (char* textFile)
 	m_pFloor->SetXPos(m_pLevel.size() * 0.5f);
 	m_pFloor->SetZPos(m_pLevel.size() * 0.5f);
 	m_pRootNode->AddChildNode(m_pFloor);
-	m_pRootNode->AddChildNode(m_pWall);
+	m_pRootNode->AddChildNode(m_pWallRoot);
 	m_pRootNode->AddChildNode(m_pCameraNode);
+	m_pRootNode->AddChildNode(m_pPlayerNode);
+	m_pRootNode->AddChildNode(m_pEnemyNode);
 
 
 }
@@ -295,13 +310,11 @@ void GameManager::LoadLevel (char* textFile)
 //Returns the frame time
 void GameManager::Update()
 {
-	float deltaTime = m_pTimer->GetFrameTime();
-	//m_pTimer->UpdateTimer();
-	m_pPlayer->Update(m_pRootNode, deltaTime);
-	UpdatePlayerNode();
+	float deltaTime = m_pTimer->GetDeltaTime();
+	m_pPlayer->Update();
 	m_pCam->Update();
 	UpdateCameraNode();
-	//double deltaTime = m_pTimer->GetFrameTime();
+	m_pEnemy->Update(m_pRootNode, deltaTime);
 }
 
 void GameManager::Render()
@@ -324,75 +337,93 @@ void GameManager::Render()
 
 void GameManager::CheckInputs()
 {
-	float deltaTime = m_pTimer->GetFrameTime();
+	float deltaTime = m_pTimer->GetDeltaTime();
 	m_pInput->ReadInputStates();
+
 
 	if (m_pInput->IsKeyPressed(DIK_ESCAPE))
 	{
 		DestroyWindow((*m_phWnd));
 	}
-
-	if (m_pInput->IsKeyPressed(DIK_W))
+	
+	//Third Person Movement
+	if (m_pCam->GetCameraType() == ThirdPerson || m_pCam->GetCameraType() == TopDown)
 	{
-		m_pPlayer->MoveForward(deltaTime);
-
-		UpdatePlayerNode();
-		XMMATRIX identity = XMMatrixIdentity();
-
-		m_pRootNode->UpdateCollisionTree(&identity, 1.0f);
-
-		if (m_pPlayerNode->CheckCollision(m_pRootNode))
-		{
-			m_pPlayer->MoveForward(-deltaTime);
-			UpdatePlayerNode();
-		}
-	}
-
-	if (m_pInput->IsKeyPressed(DIK_S))
-	{
-		m_pPlayer->MoveForward(-deltaTime);
-		UpdatePlayerNode();
-		XMMATRIX identity = XMMatrixIdentity();
-
-		m_pRootNode->UpdateCollisionTree(&identity, 1.0f);
-
-		if (m_pPlayerNode->CheckCollision(m_pRootNode))
+		if (m_pInput->IsKeyPressed(DIK_W))
 		{
 			m_pPlayer->MoveForward(deltaTime);
-			UpdatePlayerNode();
+
+			XMMATRIX identity = XMMatrixIdentity();
+
+			m_pRootNode->UpdateCollisionTree(&identity, 1.0f);
+
+			if (m_pPlayerNode->CheckCollision(m_pRootNode))
+			{
+				m_pPlayer->MoveForward(-deltaTime);
+			}
 		}
-	}
-	
-	if (m_pInput->IsKeyPressed(DIK_A))
-	{
-		m_pPlayer->MoveRight(deltaTime);
-		UpdatePlayerNode();
-		XMMATRIX identity = XMMatrixIdentity();
 
-		m_pRootNode->UpdateCollisionTree(&identity, 1.0f);
-
-		if (m_pPlayerNode->CheckCollision(m_pRootNode))
+		if (m_pInput->IsKeyPressed(DIK_S))
 		{
-			m_pPlayer->MoveRight(-deltaTime);
-			UpdatePlayerNode();
+			m_pPlayer->MoveForward(-deltaTime);
+			XMMATRIX identity = XMMatrixIdentity();
+
+			m_pRootNode->UpdateCollisionTree(&identity, 1.0f);
+
+			if (m_pPlayerNode->CheckCollision(m_pRootNode))
+			{
+				m_pPlayer->MoveForward(deltaTime);
+			}
 		}
-	}
-	
-	if (m_pInput->IsKeyPressed(DIK_D))
-	{
-		m_pPlayer->MoveRight(-deltaTime);
-		UpdatePlayerNode();
-		XMMATRIX identity = XMMatrixIdentity();
 
-		m_pRootNode->UpdateCollisionTree(&identity, 1.0f);
-
-		if (m_pPlayerNode->CheckCollision(m_pRootNode))
+		if (m_pInput->IsKeyPressed(DIK_A))
 		{
 			m_pPlayer->MoveRight(deltaTime);
-			UpdatePlayerNode();
+			XMMATRIX identity = XMMatrixIdentity();
+
+			m_pRootNode->UpdateCollisionTree(&identity, 1.0f);
+
+			if (m_pPlayerNode->CheckCollision(m_pRootNode))
+			{
+				m_pPlayer->MoveRight(-deltaTime);
+			}
+		}
+
+		if (m_pInput->IsKeyPressed(DIK_D))
+		{
+			m_pPlayer->MoveRight(-deltaTime);
+			XMMATRIX identity = XMMatrixIdentity();
+
+			m_pRootNode->UpdateCollisionTree(&identity, 1.0f);
+
+			if (m_pPlayerNode->CheckCollision(m_pRootNode))
+			{
+				m_pPlayer->MoveRight(deltaTime);
+			}
 		}
 	}
+	else
+	{
+		//First person camera movement
+		if (m_pInput->IsKeyPressed(DIK_W))
+		{
+			m_pCam->Forward(deltaTime);
+			UpdateCameraNode();
+		}
+		if (m_pInput->IsKeyPressed(DIK_S))
+		{
+			m_pCam->Forward(-deltaTime);
 
+		}
+		if (m_pInput->IsKeyPressed(DIK_A))
+		{
+			m_pCam->Strafe(deltaTime);
+		}
+		if (m_pInput->IsKeyPressed(DIK_D))
+		{
+			m_pCam->Strafe(-deltaTime);
+		}
+	}
 	if (m_pInput->IsKeyPressed(DIK_SPACE))
 	{
 		m_pPlayer->Jump(deltaTime * 30.0f);
@@ -421,11 +452,11 @@ void GameManager::CheckInputs()
 
 	if (m_pInput->GetMouseScroll() > 0)
 	{
-		m_pCam->SetFollowDistance(m_pCam->GetFollowDistance() + .10f);
+		m_pCam->SetFollowDistance(m_pCam->GetFollowDistance() + .50f);
 	}
 	if (m_pInput->GetMouseScroll() < 0)
 	{
-		m_pCam->SetFollowDistance(m_pCam->GetFollowDistance() - .1f);
+		m_pCam->SetFollowDistance(m_pCam->GetFollowDistance() - .5f);
 	}
 	 
 	m_pCam->RotateCamera(m_pInput->GetMouseX() * 0.1f, m_pInput->GetMouseY() * 0.1f);
@@ -438,13 +469,6 @@ void GameManager::UpdateCameraNode()
 	m_pCameraNode->SetZPos(m_pCam->GetZ());
 }
 
-void GameManager::UpdatePlayerNode()
-{
-	xyz pos = m_pPlayer->GetPosition();
-	m_pPlayerNode->SetXPos(pos.x);
-	m_pPlayerNode->SetYPos(pos.y);
-	m_pPlayerNode->SetZPos(pos.z);
-}
 
 /* This doesnt seem to work at the momenet, have resulted in doing it in main.cpp
 HRESULT GameManager::ResizeWindow(LPARAM* lParam)

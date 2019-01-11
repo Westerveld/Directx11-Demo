@@ -64,6 +64,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		{
 			if (g_pGameManager)
 			{
+				g_pGameManager->m_pTimer->UpdateTimer();
 				g_pGameManager->CheckInputs();
 				g_pGameManager->Update();
 				g_pGameManager->Render();

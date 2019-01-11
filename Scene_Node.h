@@ -31,6 +31,9 @@ public:
 	bool CheckCollision(Scene_Node* compareTree);
 	bool CheckCollision(Scene_Node* compareTree, Scene_Node* objectTreeRoot);
 
+	Scene_Node* CheckCollisionSN(Scene_Node* compareTree);
+	Scene_Node* CheckCollisionSN(Scene_Node* compareTree, Scene_Node* objectTreeRoot);
+
 
 	bool MoveForward(float distance, Scene_Node* rootNode);
 	bool MoveForwardXYZ(float distance, Scene_Node* rootNode);
@@ -67,6 +70,7 @@ public:
 
 	void SetModel(Model* model) { m_model = model; }
 	
+	string GetName() { return m_name; }
 
 	XMVECTOR GetWorldCentre(void);
 #pragma endregion 

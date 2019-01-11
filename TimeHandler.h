@@ -23,6 +23,7 @@ public:
 	double GetTime();
 	double GetFrameTime();
 	int GetFPS() { return m_fps; }
+	double GetDeltaTime() { return m_frameTime; }
 
 };
 
