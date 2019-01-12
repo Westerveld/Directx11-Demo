@@ -48,42 +48,42 @@ public:
 	bool CheckCollisionRay(float x, float y, float z, float rx, float ry, float rz);
 
 #pragma region Getters and Setters
-	void SetXPos(float value) { m_x = value; }
-	float GetXPos(void) { return m_x; }
+	void SetXPos(float value)						{ m_x = value; }
+	float GetXPos(void)								{ return m_x; }
 	bool IncXPos(float value, Scene_Node* rootNode);
 
-	void SetYPos(float value) { m_y = value; }
-	float GetYPos(void) { return m_y; }
+	void SetYPos(float value)						{ m_y = value; }
+	float GetYPos(void)								{ return m_y; }
 	bool IncYPos(float value, Scene_Node* rootNode);
 
-	void SetZPos(float value) { m_z = value; }
-	float GetZPos(void) { return m_z; }
+	void SetZPos(float value)						{ m_z = value; }
+	float GetZPos(void)								{ return m_z; }
 	bool IncZPos(float value, Scene_Node* rootNode);
 
-	void SetXAngle(float value) { m_Xangle = value; }
-	float GetXAngle(void) { return m_Xangle; }
+	void SetXAngle(float value)						{ m_Xangle = value; }
+	float GetXAngle(void)							{ return m_Xangle; }
 
-	void SetYAngle(float value) { m_Yangle = value; }
-	float GetYAngle(void) { return m_Yangle; }
+	void SetYAngle(float value)						{ m_Yangle = value; }
+	float GetYAngle(void)							{ return m_Yangle; }
 
-	void SetZAngle(float value) { m_Zangle = value; }
-	float GetZAngle(void) { return m_Zangle; }
+	void SetZAngle(float value)						{ m_Zangle = value; }
+	float GetZAngle(void)							{ return m_Zangle; }
 
-	void SetScale(float value) { m_scale = value; }
-	float GetScale(void) { return m_scale; }
+	void SetScale(float value)						{ m_scale = value; }
+	float GetScale(void)							{ return m_scale; }
 
-	void SetModel(Model* model) { m_model = model; }
-	Model* GetModel() { return m_model; }
+	void SetModel(Model* model)						{ m_model = model; }
+	Model* GetModel(void)							{ return m_model; }
 	
-	string GetName() { return m_name; }
+	string GetName(void)							{ return m_name; }
 
 	XMVECTOR GetWorldCentre(void);
 
-	void SetTrigger(bool val) { m_isTrigger = val; }
-	bool GetIsTrigger() { return m_isTrigger; }
+	void SetTrigger(bool val)						{ m_isTrigger = val; }
+	bool GetIsTrigger(void)							{ return m_isTrigger; }
 
-	void SetParticle(ParticleFactory* particle) { m_particle = particle; }
-	ParticleFactory* GetParticle() { return m_particle; }
+	void SetParticle(ParticleFactory* particle)		{ m_particle = particle; }
+	ParticleFactory* GetParticle(void)				{ return m_particle; }
 #pragma endregion 
 };
 

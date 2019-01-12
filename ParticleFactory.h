@@ -61,7 +61,7 @@ private:
 public:
 	ParticleFactory(ID3D11Device* device, ID3D11DeviceContext* deviceContext, LightManager* lights);
 	~ParticleFactory();
-	int CreateParticle();
+	int CreateParticle(void);
 
 	void Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, xyz cameraPosition);
 	void DrawOne(Particle* particle, XMMATRIX* view, XMMATRIX* projection, xyz cameraPosition);
@@ -72,17 +72,17 @@ public:
 #pragma region Getters and Setters
 
 	//Scale functions
-	void SetScale(float value) { m_scale = value; }
-	void IncScale(float value) { m_scale += value; }
-	float GetScale() { return m_scale; }
+	void SetScale(float value)					{ m_scale = value; }
+	void IncScale(float value)					{ m_scale += value; }
+	float GetScale(void)						{ return m_scale; }
 
-	void SetActive(bool newState) { m_isActive = newState; }
-	bool GetActive() { return m_isActive; }
+	void SetActive(bool newState)				{ m_isActive = newState; }
+	bool GetActive(void)						{ return m_isActive; }
 
 #pragma endregion
 
 	//Custom Shader
-	HRESULT LoadDefaultShaders();
+	HRESULT LoadDefaultShaders(void);
 	HRESULT LoadCustomShader(char* fileName, char* vertexShaderFunction, char* pixelShaderFunction);
 
 	//Look at a point

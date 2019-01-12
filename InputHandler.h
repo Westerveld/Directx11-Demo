@@ -22,9 +22,9 @@ public:
 	InputHandler(HWND* hWnd, HINSTANCE* hInstance);
 	~InputHandler();
 
-	HRESULT InitialiseKeyboardInput();
+	HRESULT InitialiseKeyboardInput(void);
 	
-	void ReadInputStates();
+	void ReadInputStates(void);
 
 	bool IsKeyPressed(unsigned char DI_keycode);
 

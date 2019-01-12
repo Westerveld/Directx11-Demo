@@ -17,12 +17,14 @@ private:
 	ID3D11ShaderResourceView*		m_pTextureFloor;
 	ID3D11ShaderResourceView*		m_pTextureDissolve;
 
+
 	ID3D11SamplerState*				m_pSampler0;
 
 	ID3D11BlendState*				m_pTransparencyBlend;
 
 	LightManager*					m_pLights;
 	Camera*							m_pCam;
+	Camera*							m_pUICam;
 
 	SkyBox*							m_pSkyBox;
 	Text2D*							m_pText;
@@ -31,6 +33,7 @@ private:
 	class Player*					m_pPlayer;
 	class Enemy*					m_pEnemy;
 	class Movable*					m_pMovable;
+	class MiniMap*					m_pMinimap;
 	HINSTANCE*						m_phInst;
 	HWND*							m_phWnd;
 
@@ -41,6 +44,7 @@ private:
 	Model*							m_pWallModel;
 	Model*							m_pPushableModel;
 	Model*							m_pDissolveModel;
+	Model*							m_pReflectModel;
 #pragma endregion
 
 #pragma region Level Objects
@@ -54,10 +58,12 @@ private:
 	Scene_Node*						m_pMovableNode;
 	Scene_Node*						m_pDissolveNode;
 	Scene_Node*						m_pParticleNode;
+	Scene_Node*						m_pReflectionNode;
 #pragma endregion
 	float							m_pScreenHeight, m_pScreenWidth;
 
-	void							UpdateCameraNode();
+	void							UpdateCameraNode(void);
+	
 	std::vector<std::string>		m_pLevel;
 
 	bool							m_enableAlpha;
@@ -67,33 +73,35 @@ public:
 	GameManager(float height, float width, HWND* hWnd, HINSTANCE* hInst);
 	~GameManager();
 	void LoadLevel(char* textFile);
-	void Update();
-	void Render();
-	HRESULT InitialiseGraphics();
-	void	CheckInputs();
+	void Update(void);
+	void Render(void);
+	HRESULT InitialiseGraphics(void);
+	void	CheckInputs(void);
+
 #pragma region Getters and Setters
 	void					SetScreenHeight(float height) { m_pScreenHeight = height; }
 	void					SetScreenWidth(float width) { m_pScreenWidth = width; }
 
-	IDXGISwapChain*			GetSwapChain() { return m_pSwapChain; }
+	IDXGISwapChain*			GetSwapChain(void) { return m_pSwapChain; }
 	void					SetSwapChain(IDXGISwapChain* swapChain) { m_pSwapChain = swapChain; }
 
-	ID3D11DeviceContext*	GetImmediateContext() { return m_pImmediateContext; }
+	ID3D11DeviceContext*	GetImmediateContext(void) { return m_pImmediateContext; }
 	void					SetImmediateContext(ID3D11DeviceContext* context) { m_pImmediateContext = context; }
 
-	ID3D11Device*			GetDevice() { return m_pD3DDevice; }
+	ID3D11Device*			GetDevice(void) { return m_pD3DDevice; }
 	void					SetDevice(ID3D11Device* device) { m_pD3DDevice = device; }
 
-	ID3D11RenderTargetView*	GetRenderTarget() { return m_pBackBufferRTView; }
+	ID3D11RenderTargetView*	GetRenderTarget(void) { return m_pBackBufferRTView; }
 	void					SetRenderTarget(ID3D11RenderTargetView* target) { m_pBackBufferRTView = target; }
-	void					ReleaseRenderTarget() { if (m_pBackBufferRTView) m_pBackBufferRTView->Release(); }
+	void					ReleaseRenderTarget(void) { if (m_pBackBufferRTView) m_pBackBufferRTView->Release(); }
 
-	ID3D11DepthStencilView*	GetZBuffer() { return m_pZBuffer; }
+	ID3D11DepthStencilView*	GetZBuffer(void) { return m_pZBuffer; }
 	void					SetZBuffer(ID3D11DepthStencilView* zBuffer) { m_pZBuffer = zBuffer; }
-	void					ReleaseZBuffer() { if(m_pZBuffer) m_pZBuffer->Release(); }
+	void					ReleaseZBuffer(void) { if(m_pZBuffer) m_pZBuffer->Release(); }
 	
 #pragma endregion
-	HRESULT					SetupDirectX();
+
+	HRESULT					SetupDirectX(void);
 	//HRESULT				ResizeWindow(LPARAM* lParam); Doesnt work in this class, got it working in main.cpp instead
 
 };

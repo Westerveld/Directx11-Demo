@@ -2,6 +2,7 @@
 #include "Player.h"
 #include "Enemy.h"
 #include "Movable.h"
+#include "MiniMap.h"
 
 
 
@@ -30,6 +31,7 @@ GameManager::~GameManager()
 	if (m_pPlayer)				delete m_pPlayer;
 	if (m_pRootNode)			delete m_pRootNode;
 	if (m_pParticles)			delete m_pParticles;
+	if (m_pReflectModel)		delete m_pReflectModel;
 	if (m_pDissolveModel)		delete m_pDissolveModel;
 	if (m_pPushableModel)		delete m_pPushableModel;
 	if (m_pWallModel)			delete m_pWallModel;
@@ -65,6 +67,8 @@ HRESULT GameManager::InitialiseGraphics()
 	sampler_desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampler_desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampler_desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampler_desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sampler_desc.MinLOD = 0;
 	sampler_desc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	hr = m_pD3DDevice->CreateSamplerState(&sampler_desc, &m_pSampler0);
@@ -116,10 +120,15 @@ HRESULT GameManager::InitialiseGraphics()
 	{
 		return hr;
 	}
+
+
 #pragma endregion
+
 
 	m_pCam = new Camera(0.0, 0.0, -0.5, 0.0, 1.0f, 45.0f);
 	m_pCam->ChangeCameraType(CameraType::FirstPerson);
+	m_pUICam = new Camera(0.0, 0.0, -0.5, 0.0, 1.0f, 45.0f);
+	m_pUICam->ChangeCameraType(CameraType::TopDown);
 
 	m_pText = new Text2D("assets/font1.bmp", m_pD3DDevice, m_pImmediateContext);
 
@@ -241,14 +250,39 @@ HRESULT GameManager::InitialiseGraphics()
 	m_pDissolveModel->SetDissolveTexture(m_pTextureDissolve);
 	m_pDissolveModel->SetDissolveAmount(1.0f);
 	m_pDissolveModel->SetDissolveColor(0.0f, 0.0f, 1.0f, 1.0f);
-	m_pDissolveModel->SetCollisionType(CollisionType::Box);
+	m_pDissolveModel->SetCollisionType(CollisionType::Sphere);
+	m_pDissolveModel->ChangeModelType(ModelType::Dissolve);
 #pragma endregion
 
+#pragma region Reflection Model Setup
+	m_pReflectModel = new Model(m_pD3DDevice, m_pImmediateContext, m_pLights);
+	hr = m_pReflectModel->LoadObjModel("assets/sphere.obj");
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	hr = m_pReflectModel->LoadCustomShader("reflect_shader.hlsl", "ModelVS", "ModelPS");
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	m_pReflectModel->SetSampler(m_pSampler0);
+	m_pReflectModel->SetTexture(m_pTextureBrick);
+	m_pReflectModel->SetSkyboxTexture(m_pTextureSkyBox);
+	m_pReflectModel->ChangeModelType(ModelType::Shiny);
+	m_pReflectModel->SetCollisionType(CollisionType::Sphere);
+
+#pragma endregion
 
 	m_pParticles = new ParticleFactory(m_pD3DDevice, m_pImmediateContext, m_pLights);
 	m_pParticles->CreateParticle();
 	m_pParticles->SetActive(true);
 
+	m_pMinimap = new MiniMap(m_pD3DDevice, m_pImmediateContext, m_pZBuffer, m_pScreenHeight, m_pScreenHeight);
+	m_pMinimap->SetUpMiniMap();
+	m_pMinimap->SetCamera(m_pUICam);
 	return hr;
 }
 
@@ -314,9 +348,16 @@ void GameManager::LoadLevel (char* textFile)
 
 					m_pCam->SetTarget(m_pPlayerNode);
 					m_pCam->ChangeCameraType(ThirdPerson);
+					m_pCam->SetMinFollow(2.5f);
+					m_pCam->SetMaxFollow(40.0f);
 					m_pCam->SetFollowDistance(10.0f);
+					
 					UpdateCameraNode();
 
+					m_pUICam->SetTarget(m_pPlayerNode);
+					m_pUICam->SetMinFollow(5.0f);
+					m_pUICam->SetMaxFollow(80.0f);
+					m_pUICam->SetFollowDistance(20.0f);
 				}
 				break;
 				//Enemy
@@ -359,11 +400,12 @@ void GameManager::LoadLevel (char* textFile)
 
 					m_pParticleNode = new Scene_Node("Particle");
 					m_pParticleNode->SetParticle(m_pParticles);
-					m_pParticleNode->SetXPos(j * 2.0f);
+					m_pParticleNode->SetXPos(j);
 					m_pParticleNode->SetYPos(2.0f);
-					m_pParticleNode->SetZPos(i * 2.0f);
+					m_pParticleNode->SetZPos(i);
 				}
 				break;
+				//Disoolve Model
 				case 'D':
 				{
 					m_pDissolveNode = new Scene_Node("Dissolve");
@@ -374,9 +416,21 @@ void GameManager::LoadLevel (char* textFile)
 					m_pDissolveNode->SetZPos(i * 6.0f);
 				}
 				break;
+				//Reflection Model
+				case 'R':
+				{
+					m_pReflectionNode = new Scene_Node("Reflection");
+					m_pReflectionNode->SetModel(m_pReflectModel);
+					m_pReflectionNode->SetScale(0.25f);
+					m_pReflectionNode->SetXPos(j*6.0f);
+					m_pReflectionNode->SetYPos(1.0f);
+					m_pReflectionNode->SetZPos(i * 6.0f);
+				}
+				break;
 			}
 		}
 	}
+
 	m_pFloor->SetXPos(m_pLevel.size() * 0.5f);
 	m_pFloor->SetZPos(m_pLevel.size() * 0.5f);
 	m_pRootNode->AddChildNode(m_pFloor);
@@ -386,7 +440,8 @@ void GameManager::LoadLevel (char* textFile)
 	m_pRootNode->AddChildNode(m_pEnemyNode);
 	m_pRootNode->AddChildNode(m_pMovableNode);
 	m_pRootNode->AddChildNode(m_pDissolveNode);
-	m_pRootNode->AddChildNode(m_pParticleNode);
+	//m_pRootNode->AddChildNode(m_pParticleNode);
+	m_pRootNode->AddChildNode(m_pReflectionNode);
 }
 
 
@@ -397,6 +452,7 @@ void GameManager::Update()
 	m_pPlayer->Update();
 	m_pCam->Update();
 	UpdateCameraNode();
+	m_pUICam->Update();
 	m_pEnemy->Update(m_pRootNode, deltaTime);
 	m_pMovable->Update(m_pRootNode, deltaTime);
 	m_pDissolveNode->GetModel()->SetDissolveAmount(m_pDissolveNode->GetModel()->GetDissolveAmount() - deltaTime);
@@ -412,12 +468,15 @@ void GameManager::Render()
 	m_pImmediateContext->ClearRenderTargetView(m_pBackBufferRTView, clearCol);
 	m_pImmediateContext->ClearDepthStencilView(m_pZBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
+	m_pImmediateContext->OMSetRenderTargets(1, &m_pBackBufferRTView, m_pZBuffer);
+
 	m_pImmediateContext->OMSetBlendState(0, 0, 0xffffffff);
 	if (m_enableAlpha)
 	{
 		float blendFactor[] = { 0.75f, 0.75f,0.75f,1.0f };
 		m_pImmediateContext->OMSetBlendState(m_pTransparencyBlend, blendFactor, 0xffffffff);
 	}
+	//Render the world from the cameras perspective
 	XMMATRIX world, view, projection;
 
 	world = XMMatrixIdentity();
@@ -429,8 +488,12 @@ void GameManager::Render()
 	m_pRootNode->Execute(&world, &view, &projection, m_pCam);
 
 
+	m_pMinimap->RenderMap(m_pRootNode);
 
-	//RenderText last
+	m_pImmediateContext->OMSetRenderTargets(1, &m_pBackBufferRTView, m_pZBuffer);
+
+
+	//Render Text last
 	m_pText->RenderText();
 	m_pSwapChain->Present(0, 0);
 }

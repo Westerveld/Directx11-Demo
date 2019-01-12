@@ -67,6 +67,15 @@ void Scene_Node::Execute(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, 
 
 	local_world *= *world;
 
+	XMVECTOR myPos, camPos;
+	myPos.x = local_world._41;
+	myPos.y = local_world._42;
+	myPos.z = local_world._43;
+
+	camPos.x = view->_41;
+	camPos.y = view->_42;
+	camPos.z = view->_43;
+
 	if (m_model)
 	{
 		m_model->Draw(&local_world, view, projection);

@@ -8,8 +8,8 @@ protected:
 	bool		m_touchingGround;
 	Scene_Node* m_node;
 
-	void		UpdateNodePosition();
-	void		UpdateNodeRotation();
+	void		UpdateNodePosition(void);
+	void		UpdateNodeRotation(void);
 public:
 	Entity(Scene_Node* myNode);
 	~Entity();
@@ -19,22 +19,22 @@ public:
 	void Move(float x, float z);
 
 #pragma region Getter and Setters
-	xyz GetPosition() { return m_position; }
+	xyz GetPosition(void) { return m_position; }
 	void SetPosition(float x, float y, float z);
 
-	xyz GetGravity() { return m_gravity; }
+	xyz GetGravity(void) { return m_gravity; }
 	void SetGravity(float x, float y,  float z);
 
-	xyz GetRotation() { return m_rotation; }
+	xyz GetRotation(void) { return m_rotation; }
 	void SetRotation(float x, float y, float z);
 
 	void SetTouchingGround(bool val) { m_touchingGround = val; }
-	bool GetTouchingGround() { return m_touchingGround; }
+	bool GetTouchingGround(void) { return m_touchingGround; }
 
-	xyz GetVeloicty() { return m_velocity; }
+	xyz GetVeloicty(void) { return m_velocity; }
 	void SetVelocity(float x, float y, float z);
 
-	xyz GetDrag() { return m_drag; }
+	xyz GetDrag(void) { return m_drag; }
 	void SetDrag(float x, float y, float z);
 #pragma endregion
 	

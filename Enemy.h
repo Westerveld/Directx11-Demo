@@ -9,8 +9,8 @@ private:
 	float				m_moveSpeed;
 
 	void				Move(float delta);
-	void				NextWaypoint();
-	bool				AtWaypoint();
+	void				NextWaypoint(void);
+	bool				AtWaypoint(void);
 public:
 	Enemy(Scene_Node* rootNode, float speed);
 	~Enemy();

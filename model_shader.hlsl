@@ -1,4 +1,4 @@
-cbuffer CB0
+ cbuffer CB0
 {
 	matrix WVPMatrix;
     float4 dirLightCol;

@@ -274,10 +274,14 @@ void Model::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection)
 		m_pImmediateContext->PSSetShaderResources(0, 1, &m_pTexture);
 	}
 
+	if (m_pSkyboxTexture)
+	{
+		m_pImmediateContext->PSSetShaderResources(1, 1, &m_pSkyboxTexture);
+	}
 
 	if (m_pDissolveTexture)
 	{
-		m_pImmediateContext->PSGetShaderResources(1, 1, &m_pDissolveTexture);
+		m_pImmediateContext->PSSetShaderResources(1, 1, &m_pDissolveTexture);
 	}
 
 	m_pObject->Draw();

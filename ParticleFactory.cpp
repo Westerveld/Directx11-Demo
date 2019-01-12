@@ -405,7 +405,7 @@ void ParticleFactory::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection
 			case Explosion:
 				local = *world;
 				local *= XMMatrixScaling((*itr)->scale, (*itr)->scale, (*itr)->scale);
-				local *= XMMatrixRotationRollPitchYawFromVector(LookAt_XYZ((*itr), cameraPosition.x, cameraPosition.y, cameraPosition.z));
+				local *= XMMatrixRotationY(XMConvertToRadians(LookAt_XZ((*itr), cameraPosition.x, cameraPosition.z)));
 				local *= XMMatrixTranslation((*itr)->position.x, (*itr)->position.y, (*itr)->position.z);
 				break;
 

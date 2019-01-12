@@ -8,14 +8,14 @@ private:
 	float			m_speed;
 	xyz				m_forward, m_right, m_input;
 
-	void			CalculateForwardVector();
-	void			CalculateRightVector();
+	void			CalculateForwardVector(void);
+	void			CalculateRightVector(void);
 
 public:
 	Player(Scene_Node* myNode, Camera* cam, float speed);
 	~Player();
 
-	void Update();
+	void Update(void);
 	void MoveForward(float distance);
 	void MoveRight(float distance);
 };

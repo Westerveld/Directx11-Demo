@@ -80,10 +80,10 @@
     <ClCompile Include="Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MiniMap.cpp">
+    <ClCompile Include="Movable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Movable.cpp">
+    <ClCompile Include="MiniMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -136,10 +136,10 @@
     <ClInclude Include="Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MiniMap.h">
+    <ClInclude Include="Movable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Movable.h">
+    <ClInclude Include="MiniMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

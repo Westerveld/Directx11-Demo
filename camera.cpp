@@ -198,7 +198,7 @@ void Camera::Update()
 			m_target = XMVectorSet(m_followTarget->GetXPos(), m_followTarget->GetYPos(), m_followTarget->GetZPos(), 0);
 
 			//Move up the model a bit
-			m_target = XMVectorSetY(m_target, XMVectorGetY(m_target) + 0.5f);
+			m_target = XMVectorSetY(m_target, XMVectorGetY(m_target));
 			//Setup rotation matrix
 			m_rotationMatrix = XMMatrixRotationRollPitchYaw(XMConvertToRadians(-m_camera_rotation_pitch), XMConvertToRadians(m_camera_rotation_yaw), 0);
 			m_position = XMVector3TransformNormal(m_dForward, m_rotationMatrix);

@@ -12,6 +12,7 @@ cbuffer CBShiny
 };
 
 Texture2D texture0;
+TextureCube skyboxTexture;
 SamplerState sampler0;
 
 struct VOut
@@ -30,27 +31,21 @@ VOut ModelVS(float4 position : POSITION, float3 texcoord : TEXCOORD, float3 norm
 	output.normal = normal;
 	//output.normal = normalize(output.normal);
 
-	float diffuse_amount = dot(dirLightPos.xyz, normal);
-	diffuse_amount = saturate(diffuse_amount);
-	output.color = ambLightCol + (dirLightCol * diffuse_amount);
+	output.color = float4(1, 1, 1, 1);
 
 
-    float4 wvpos = mul(worldView, position);
-	//output.position = mul(WVPMatrix, position);
-    float3 wvnormal = mul((float3x3)worldView, normal);
-    wvnormal = normalize(wvnormal);
+	float3 wvpos = mul(worldView, position).xyz;
+	float3 wvnormal = mul((float3x3)worldView, normal);
+	wvnormal = normalize(wvnormal);
 
-    float3 eyer = -normalize((float3)wvpos);
-
-    output.texcoord = 2.0 * dot(eyer, wvnormal) * wvnormal - eyer;
+	float3 eyer = -normalize(wvpos);
+	output.texcoord = 2.0 * dot(eyer, wvnormal) * wvnormal - eyer;
 
 	
-
-
 	return output;
 }
 
 float4 ModelPS(in VOut input) : SV_TARGET
 {
-	return texture0.Sample(sampler0, input.texcoord.xy) * input.color;
+	return skyboxTexture.Sample(sampler0, input.texcoord) * texture0.Sample(sampler0, input.texcoord) ;
 }

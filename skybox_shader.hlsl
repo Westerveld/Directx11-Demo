@@ -25,6 +25,5 @@ VOut SkyboxVS(float4 position : POSITION, float3 color : COLOR, float3 texcoord 
 
 float4 SkyboxPS(float4 position : SV_POSITION, float3 texcoord : TEXCOORD) : SV_TARGET
 {
-
 	return cube0.Sample(sampler0, texcoord);
 }

@@ -55,6 +55,9 @@ private:
 	ModelType					m_type;
 	CollisionType				m_collisionType;
 
+	//Used for a shiny model
+	ID3D11ShaderResourceView*	m_pSkyboxTexture;
+
 	//Used for a dissolve model
 	ID3D11ShaderResourceView*	m_pDissolveTexture;
 	float						m_dissolveAmount;
@@ -66,36 +69,38 @@ public:
 	void Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection);
 
 	//Texture creation
-	void SetTexture(ID3D11ShaderResourceView* texture) { m_pTexture = texture; }
-	void SetSampler(ID3D11SamplerState* sampler) { m_pSampler = sampler; }
+	void SetTexture(ID3D11ShaderResourceView* texture)					{ m_pTexture = texture; }
+	void SetSampler(ID3D11SamplerState* sampler)						{ m_pSampler = sampler; }
 
 	//Used for dissolve shaders;
-	void SetDissolveTexture(ID3D11ShaderResourceView* texture) { m_pDissolveTexture = texture; }
-	void SetDissolveColor(float r, float g, float b, float a) { m_dissolveColor = XMVectorSet(r, g, b, a); }
+	void SetDissolveTexture(ID3D11ShaderResourceView* texture)			{ m_pDissolveTexture = texture; }
+	void SetDissolveColor(float r, float g, float b, float a)			{ m_dissolveColor = XMVectorSet(r, g, b, a); }
 	void SetDissolveAmount(float val);
-	float GetDissolveAmount() { return m_dissolveAmount; }
+	float GetDissolveAmount(void)										{ return m_dissolveAmount; }
 
 	//Custom Shader
-	HRESULT LoadDefaultShaders();
+	HRESULT LoadDefaultShaders(void);
 	HRESULT LoadCustomShader(char* fileName, char* vertexShaderFunction, char* pixelShaderFunction);
 
 
-	float GetBoundingSphereRadius();
+	float GetBoundingSphereRadius(void);
 
 
-	float GetBoundingSphereX(void) { return m_boundingSphereCentreX; }
-	float GetBoundingSphereY(void) { return m_boundingSphereCentreY; }
-	float GetBoundingSphereZ(void) { return m_boundingSphereCentreZ; }
+	float GetBoundingSphereX(void)										{ return m_boundingSphereCentreX; }
+	float GetBoundingSphereY(void)										{ return m_boundingSphereCentreY; }
+	float GetBoundingSphereZ(void)										{ return m_boundingSphereCentreZ; }
 
-	void ChangeModelType(ModelType newType) { m_type = newType; }
-	ObjFileModel* GetModel(void) { return m_pObject; }
+	void ChangeModelType(ModelType newType)								{ m_type = newType; }
+	ObjFileModel* GetModel(void)										{ return m_pObject; }
 
 	void SetCollisionType(CollisionType newType);
 
-	CollisionType GetCollisionType() { return m_collisionType; }
+	CollisionType GetCollisionType(void)								{ return m_collisionType; }
 
-	xyz GetBoundingBoxSize() { return m_boundingBoxSize; }
-	xyz GetBoundingBoxCentre() { return m_boundingBoxCentre; }
+	xyz GetBoundingBoxSize(void)										{ return m_boundingBoxSize; }
+	xyz GetBoundingBoxCentre(void)										{ return m_boundingBoxCentre; }
 
+	//Used for shiny model
+	void SetSkyboxTexture(ID3D11ShaderResourceView* skybox)				{ m_pSkyboxTexture = skybox; }
 };
 
