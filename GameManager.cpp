@@ -317,11 +317,6 @@ void GameManager::LoadLevel (char* textFile)
 					m_pCam->SetFollowDistance(10.0f);
 					UpdateCameraNode();
 
-
-
-					XMMATRIX identity = XMMatrixIdentity();
-
-					m_pRootNode->UpdateCollisionTree(&identity, 1.0f);
 				}
 				break;
 				//Enemy
@@ -361,9 +356,12 @@ void GameManager::LoadLevel (char* textFile)
 					m_pParticles->CreateParticle();
 					m_pParticles->SwitchParticleType(ParticleType::Explosion);
 					m_pParticles->SetActive(true);
-					m_pParticles->SetXPos(j * 6.0f);
-					m_pParticles->SetYPos(1.0f);
-					m_pParticles->SetZPos(i * 6.0f);
+
+					m_pParticleNode = new Scene_Node("Particle");
+					m_pParticleNode->SetParticle(m_pParticles);
+					m_pParticleNode->SetXPos(j * 2.0f);
+					m_pParticleNode->SetYPos(2.0f);
+					m_pParticleNode->SetZPos(i * 2.0f);
 				}
 				break;
 				case 'D':
@@ -388,6 +386,7 @@ void GameManager::LoadLevel (char* textFile)
 	m_pRootNode->AddChildNode(m_pEnemyNode);
 	m_pRootNode->AddChildNode(m_pMovableNode);
 	m_pRootNode->AddChildNode(m_pDissolveNode);
+	m_pRootNode->AddChildNode(m_pParticleNode);
 }
 
 
@@ -427,10 +426,9 @@ void GameManager::Render()
 	m_pSkyBox->RenderSkyBox(&view, &projection, m_pCam);
 
 
-	m_pRootNode->Execute(&world, &view, &projection);
+	m_pRootNode->Execute(&world, &view, &projection, m_pCam);
 
 
-	m_pParticles->Draw(&view, &projection, &XMFLOAT3(m_pCam->GetX(), m_pCam->GetY(), m_pCam->GetZ()));
 
 	//RenderText last
 	m_pText->RenderText();

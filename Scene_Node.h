@@ -1,6 +1,8 @@
 #pragma once
 #include "Model.h"
 #include "maths.h"
+#include "ParticleFactory.h"
+#include "Camera.h"
 #include <iostream>
 
 
@@ -10,6 +12,7 @@ private:
 	Model*					m_model;
 	vector<Scene_Node*>		m_children;
 	string					m_name;
+	ParticleFactory*		m_particle;
 	bool					m_isTrigger;
 
 	float					m_x, m_y, m_z;
@@ -25,7 +28,7 @@ public:
 	void AddChildNode(Scene_Node* node);
 	bool DetachNode(Scene_Node* node);
 
-	void Execute(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection);
+	void Execute(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, class Camera* cam);
 
 	void UpdateCollisionTree(XMMATRIX* world, float scale);
 
@@ -78,6 +81,9 @@ public:
 
 	void SetTrigger(bool val) { m_isTrigger = val; }
 	bool GetIsTrigger() { return m_isTrigger; }
+
+	void SetParticle(ParticleFactory* particle) { m_particle = particle; }
+	ParticleFactory* GetParticle() { return m_particle; }
 #pragma endregion 
 };
 

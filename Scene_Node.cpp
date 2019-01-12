@@ -51,7 +51,7 @@ bool Scene_Node::DetachNode(Scene_Node* node)
 	return false;
 }
 
-void Scene_Node::Execute(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection)
+void Scene_Node::Execute(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, Camera* cam)
 {
 	XMMATRIX local_world;
 
@@ -71,11 +71,15 @@ void Scene_Node::Execute(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection)
 	{
 		m_model->Draw(&local_world, view, projection);
 	}
+	if (m_particle)
+	{
+		m_particle->Draw(&local_world, view, projection, cam->GetPosition());
+	}
 
 
 	for (size_t i = 0; i < m_children.size(); i++)
 	{
-		m_children[i]->Execute(&local_world, view, projection);
+		m_children[i]->Execute(&local_world, view, projection, cam);
 	}
 }
 

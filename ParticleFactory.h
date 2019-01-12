@@ -43,16 +43,8 @@ private:
 
 	LightManager*				m_lights;
 
-	float						m_x, m_y, m_z;
 	float						m_xAngle, m_yAngle, m_zAngle;
 	float						m_scale, m_defScale;
-
-	float						m_boundingSphereCentreX, m_boundingSphereCentreY, m_boundingSphereCentreZ, m_boundingSphereRadius, m_defRadius;
-
-	/*void						CalculateModelCentrePoint();
-	void						CalculateBoudingSphereRadius();*/
-
-	XMMATRIX					GetWorldMatrix();
 
 	float						m_timePrevious;
 	float						m_untilParticle;
@@ -71,47 +63,22 @@ public:
 	~ParticleFactory();
 	int CreateParticle();
 
-	void Draw(XMMATRIX* view, XMMATRIX* projection, XMFLOAT3* cameraPosition);
-	void DrawOne(Particle* particle, XMMATRIX* view, XMMATRIX* projection, XMFLOAT3* cameraPosition);
+	void Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, xyz cameraPosition);
+	void DrawOne(Particle* particle, XMMATRIX* view, XMMATRIX* projection, xyz cameraPosition);
 
 	//Texture creation
 	HRESULT AddTexture(char* filename);
 
 #pragma region Getters and Setters
-	//m_x functions
-	void SetXPos(float value) { m_x = value; }
-	void IncXPos(float value) { m_x += value; }
-	float GetXPos() { return m_x; }
-
-	//m_y functions
-	void SetYPos(float value) { m_y = value; }
-	void IncYPos(float value) { m_y += value; }
-	float GetYPos() { return m_y; }
-
-	//m_z functions
-	void SetZPos(float value) { m_z = value; }
-	void IncZPos(float value) { m_z += value; }
-	float GetZPos() { return m_z; }
-
-	//xAngle functions
-	void SetXAngle(float value) { m_xAngle = value; }
-	void IncXAngle(float value) { m_xAngle += value; }
-	float GetXAngle() { return m_xAngle; }
-
-	//yAngle functions
-	void SetYAngle(float value) { m_yAngle = value; }
-	void IncYAngle(float value) { m_yAngle += value; }
-	float GetYAngle() { return m_yAngle; }
-
-	//zAngle functions
-	void SetZAngle(float value) { m_zAngle = value; }
-	void IncZAngle(float value) { m_zAngle += value; }
-	float GetZAngle() { return m_zAngle; }
 
 	//Scale functions
 	void SetScale(float value) { m_scale = value; }
 	void IncScale(float value) { m_scale += value; }
 	float GetScale() { return m_scale; }
+
+	void SetActive(bool newState) { m_isActive = newState; }
+	bool GetActive() { return m_isActive; }
+
 #pragma endregion
 
 	//Custom Shader
@@ -120,19 +87,9 @@ public:
 
 	//Look at a point
 	float LookAt_XZ(Particle* particle, float x, float z);
-	XMVECTOR LookAt_XYZ(float x, float y, float z);
-
-	void MoveForward(float distance);
-	void MoveForwardXYZ(float distance);
-
-	XMVECTOR GetBoundingSphereWorldSpacePosition();
-
-	float GetBoundingSphereRadius();
+	XMVECTOR LookAt_XYZ(Particle* particle, float x, float y, float z);
 
 	void SwitchParticleType(ParticleType newType);
-
-	void SetActive(bool newState) { m_isActive = newState; }
-	bool GetActive() { return m_isActive; }
-
+	
 };
 

@@ -20,7 +20,7 @@ private:
 	CameraType m_camType;
 
 	//Third person
-	Scene_Node* m_followTarget;
+	class Scene_Node* m_followTarget;
 	float m_followDistance;
 public:
 	Camera(float x, float y, float z, float camera_rotation, float minDistance, float maxDistance);

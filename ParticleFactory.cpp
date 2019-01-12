@@ -5,10 +5,6 @@ ParticleFactory::ParticleFactory(ID3D11Device* device, ID3D11DeviceContext* devi
 	m_pImmediateContext = deviceContext;
 	m_pD3DDevice = device;
 	m_lights = lights;
-
-	m_x = 0.0f;
-	m_y = 0.0f;
-	m_z = 0.0f;
 	m_timePrevious = float(timeGetTime()) / 1000.0f;
 	m_untilParticle = 1.0f;
 	m_isActive = true;
@@ -298,11 +294,11 @@ HRESULT ParticleFactory::LoadCustomShader(char* fileName, char* vertexShaderFunc
 	return S_OK;
 }
 
-void ParticleFactory::Draw(XMMATRIX* view, XMMATRIX* projection, XMFLOAT3* cameraPosition)
+void ParticleFactory::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, xyz cameraPosition)
 {
 	UINT stride = sizeof(XMFLOAT3);
 	UINT offset = 0;
-	XMMATRIX world;
+	XMMATRIX local;
 
 	float timeNow = float(timeGetTime()) /1000.0f;
 	float deltaTime = timeNow - m_timePrevious;
@@ -328,7 +324,7 @@ void ParticleFactory::Draw(XMMATRIX* view, XMMATRIX* projection, XMFLOAT3* camer
 					m_age = 2.0f;
 					(*itr)->color = XMFLOAT4(RandomZeroToOne(), RandomZeroToOne(), RandomZeroToOne(), 1.0f);
 					(*itr)->gravity = 4.5f;
-					(*itr)->position = XMFLOAT3(0.0f, 5.0f, 3.0f);
+					(*itr)->position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 					(*itr)->velocity = XMFLOAT3(RandomNegOneToPosOne(), 2.5f, RandomNegOneToPosOne());
 					(*itr)->scale = 0.3f;
 					break;
@@ -338,7 +334,7 @@ void ParticleFactory::Draw(XMMATRIX* view, XMMATRIX* projection, XMFLOAT3* camer
 					m_age = 3.0f;
 					(*itr)->color = XMFLOAT4(1.0f, RandomZeroToOne(), RandomZeroToOne(), 1.0f);
 					(*itr)->gravity = 0.5f;
-					(*itr)->position = XMFLOAT3(0.0f, 1.0f, 3.0f);
+					(*itr)->position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 					(*itr)->velocity = XMFLOAT3(RandomNegOneToPosOne() * 5.0f, RandomNegOneToPosOne() * 5.0f, RandomNegOneToPosOne() * 5.0f);
 					(*itr)->scale = 0.4f;
 					break;
@@ -395,22 +391,22 @@ void ParticleFactory::Draw(XMMATRIX* view, XMMATRIX* projection, XMFLOAT3* camer
 				break;
 			}
 
-			world = XMMatrixIdentity();
+			local = XMMatrixIdentity();
 
 			switch (m_type)
 			{
 			case Fountain:
-				world = GetWorldMatrix();
-				world *= XMMatrixScaling((*itr)->scale, (*itr)->scale, (*itr)->scale);
-				world *= XMMatrixRotationY(XMConvertToRadians(LookAt_XZ((*itr), cameraPosition->x,cameraPosition->z)));
-				world *= XMMatrixTranslation((*itr)->position.x, (*itr)->position.y, (*itr)->position.z);
+				local = *world;
+				local *= XMMatrixScaling((*itr)->scale, (*itr)->scale, (*itr)->scale);
+				local *= XMMatrixRotationY(XMConvertToRadians(LookAt_XZ((*itr), cameraPosition.x, cameraPosition.z)));
+				local *= XMMatrixTranslation((*itr)->position.x, (*itr)->position.y, (*itr)->position.z);
 				break;
 				
 			case Explosion:
-				world = GetWorldMatrix();
-				world *= XMMatrixScaling((*itr)->scale, (*itr)->scale, (*itr)->scale);
-				//world *= XMMatrixRotationY(XMConvertToRadians(LookAt_XZ((*itr), cameraPosition->x, cameraPosition->z)));
-				world *= XMMatrixTranslation((*itr)->position.x, (*itr)->position.y, (*itr)->position.z);
+				local = *world;
+				local *= XMMatrixScaling((*itr)->scale, (*itr)->scale, (*itr)->scale);
+				local *= XMMatrixRotationRollPitchYawFromVector(LookAt_XYZ((*itr), cameraPosition.x, cameraPosition.y, cameraPosition.z));
+				local *= XMMatrixTranslation((*itr)->position.x, (*itr)->position.y, (*itr)->position.z);
 				break;
 
 			default:
@@ -418,7 +414,7 @@ void ParticleFactory::Draw(XMMATRIX* view, XMMATRIX* projection, XMFLOAT3* camer
 			}
 
 			PARTICLE_CONSTANT_BUFFER particle_cbValues;
-			particle_cbValues.WorldViewProjection = world * (*view) * (*projection);
+			particle_cbValues.WorldViewProjection = local * (*view) * (*projection);
 			particle_cbValues.color = (*itr)->color;
 
 			//Set input layout and shaders active
@@ -458,20 +454,15 @@ void ParticleFactory::Draw(XMMATRIX* view, XMMATRIX* projection, XMFLOAT3* camer
 
 }
 
-void ParticleFactory::DrawOne(Particle* particle, XMMATRIX* view, XMMATRIX* projection, XMFLOAT3* cameraPosition)
+void ParticleFactory::DrawOne(Particle* particle, XMMATRIX* view, XMMATRIX* projection, xyz cameraPosition)
 {
 	UINT stride = sizeof(XMFLOAT3);
 	UINT offset = 0;
 	XMMATRIX world;
 
 	SetScale(1.0f);
-	SetYAngle(XM_PI);
 
-	SetXPos(particle->position.x);
-	SetYPos(particle->position.y);
-	SetZPos(particle->position.z);
-
-	world = GetWorldMatrix();
+	world = XMMatrixIdentity();
 	
 
 	PARTICLE_CONSTANT_BUFFER particle_cbValues;
@@ -500,162 +491,30 @@ void ParticleFactory::DrawOne(Particle* particle, XMMATRIX* view, XMMATRIX* proj
 float ParticleFactory::LookAt_XZ(Particle* particle, float x, float z)
 {
 	float dx, dz;
-	dx = particle->position.x - x;
-	dz = particle->position.z - z;
+	dx = x - particle->position.x;
+	dz = z - particle->position.z;
 	//m_yAngle = atan2(dx, dz) * (180.0 / XM_PI);
 	float value = atan2(dx, dz);
 	return value;
 }
 
-XMVECTOR ParticleFactory::LookAt_XYZ(float x, float y, float z)
+XMVECTOR ParticleFactory::LookAt_XYZ(Particle* particle, float x, float y, float z)
 {
 	float dx, dy, dz;
 	XMVECTOR angles;
-	dx = x - m_x;
-	dy = y - m_y;
-	dz = z - m_z;
-
+	dx = particle->position.x - x;
+	dy = particle->position.y - y;
+	dz = particle->position.z - z;
 	/*m_xAngle = -atan2(dy, dx - dz) * (180.0 / XM_PI);
 	m_yAngle = atan2(dx, dz) * (180.0 / XM_PI);*/
 
 	angles.z = 0;
-	angles.x = -atan2(dy, dx - dz) * (180.0 / XM_PI);
-	angles.y = atan2(dx, dz) * (180.0 / XM_PI);
+	angles.x = -atan2(dy, dx - dz);
+	angles.y = atan2(dx, dz);
 
 	return angles;
 }
 
-
-void ParticleFactory::MoveForward(float distance)
-{
-	m_x += sin(m_yAngle * (XM_PI / 180.0)) * distance;
-	m_z += cos(m_yAngle * (XM_PI / 180.0)) * distance;
-}
-
-void ParticleFactory::MoveForwardXYZ(float distance)
-{
-	MoveForward(distance);
-	m_y += -sin(m_xAngle * (XM_PI / 180.0)) * distance;
-}
-
-#pragma region Sphere Collision Detection
-/*void ParticleFactory::CalculateModelCentrePoint()
-{
-	float minX = 0, minY = 0, minZ = 0, maxX = 0, maxY = 0, maxZ = 0;
-
-	for (int i = 0; i < m_pObject->numverts; i++)
-	{
-		if (m_pObject->vertices[i].Pos.x < minX)
-			minX = m_pObject->vertices[i].Pos.x;
-		if (m_pObject->vertices[i].Pos.x > maxX)
-			maxX = m_pObject->vertices[i].Pos.x;
-
-		if (m_pObject->vertices[i].Pos.y < minY)
-			minY = m_pObject->vertices[i].Pos.y;
-		if (m_pObject->vertices[i].Pos.y > maxY)
-			maxY = m_pObject->vertices[i].Pos.y;
-
-		if (m_pObject->vertices[i].Pos.z < minZ)
-			minZ = m_pObject->vertices[i].Pos.z;
-		if (m_pObject->vertices[i].Pos.z > maxZ)
-			maxZ = m_pObject->vertices[i].Pos.z;
-	}
-
-	m_boundingSphereCentreX = (minX + maxX) / 2;
-	m_boundingSphereCentreY = (minY + maxY) / 2;
-	m_boundingSphereCentreZ = (minZ + maxZ) / 2;
-}
-
-/*void ParticleFactory::CalculateBoudingSphereRadius()
-{
-	float biggestDistFromCentre = 0;
-
-	for (int i = 0; i < m_pObject->numverts; i++)
-	{
-		if ((m_boundingSphereCentreX + m_pObject->vertices[i].Pos.x) > (m_boundingSphereCentreX + biggestDistFromCentre))
-			biggestDistFromCentre = m_pObject->vertices[i].Pos.x;
-
-		if ((m_boundingSphereCentreY + m_pObject->vertices[i].Pos.y) > (m_boundingSphereCentreY + biggestDistFromCentre))
-			biggestDistFromCentre = m_pObject->vertices[i].Pos.y;
-
-		if ((m_boundingSphereCentreZ + m_pObject->vertices[i].Pos.z) > (m_boundingSphereCentreZ + biggestDistFromCentre))
-			biggestDistFromCentre = m_pObject->vertices[i].Pos.z;
-	}
-
-	m_boundingSphereRadius = biggestDistFromCentre;
-
-	m_defRadius = m_boundingSphereRadius;
-
-}*/
-
-XMVECTOR ParticleFactory::GetBoundingSphereWorldSpacePosition()
-{
-	XMVECTOR offset;
-	XMMATRIX world = GetWorldMatrix();
-
-	offset = XMVectorSet(m_boundingSphereCentreX, m_boundingSphereCentreY, m_boundingSphereCentreZ, 0.0f);
-	offset = XMVector3Transform(offset, world);
-
-	return offset;
-}
-
-/*bool ParticleFactory::CheckCollision(std::vector<Model*> other)
-{
-	for (int i = 0; i < other.size(); i++)
-	{
-		if (other[i] == this)
-			continue;
-
-		XMVECTOR myPos;
-		XMVECTOR otherPos;
-		myPos = this->GetBoundingSphereWorldSpacePosition();
-		otherPos = other[i]->GetBoundingSphereWorldSpacePosition();
-
-		float x1, x2, y1, y2, z1, z2;
-
-		x1 = XMVectorGetX(myPos);
-		y1 = XMVectorGetY(myPos);
-		z1 = XMVectorGetZ(myPos);
-
-		x2 = XMVectorGetX(otherPos);
-		y2 = XMVectorGetY(otherPos);
-		z2 = XMVectorGetZ(otherPos);
-
-		float distanceSqrd = pow(x1 - x2, 2) + pow(y1 - y2, 2) + pow(z1 - z2, 2);
-
-		if (distanceSqrd < pow(this->GetBoundingSphereRadius() + other[i]->GetBoundingSphereRadius(), 2))
-		{
-			return true;
-		}
-	}
-	return false;
-
-}
-#pragma endregion
-*/
-#pragma region Getters and Setters
-XMMATRIX ParticleFactory::GetWorldMatrix()
-{
-	XMMATRIX world;
-	world = XMMatrixIdentity();
-	//Set scale
-	world *= XMMatrixScaling(m_scale, m_scale, m_scale);
-
-	//Set rotation
-	world *= XMMatrixRotationX(XMConvertToRadians(m_xAngle));
-	world *= XMMatrixRotationY(XMConvertToRadians(m_yAngle));
-	world *= XMMatrixRotationZ(XMConvertToRadians(m_zAngle));
-
-	//Set position
-	world *= XMMatrixTranslation(m_x, m_y, m_z);
-
-	return world;
-}
-
-float ParticleFactory::GetBoundingSphereRadius()
-{
-	return m_boundingSphereRadius * m_scale;
-}
 
 void ParticleFactory::SwitchParticleType(ParticleType newType)
 {
@@ -681,4 +540,3 @@ void ParticleFactory::SwitchParticleType(ParticleType newType)
 
 }
 
-#pragma endregion

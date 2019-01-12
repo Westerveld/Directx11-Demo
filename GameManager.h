@@ -53,6 +53,7 @@ private:
 	Scene_Node*						m_pEnemyNode;
 	Scene_Node*						m_pMovableNode;
 	Scene_Node*						m_pDissolveNode;
+	Scene_Node*						m_pParticleNode;
 #pragma endregion
 	float							m_pScreenHeight, m_pScreenWidth;
 
