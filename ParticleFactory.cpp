@@ -328,16 +328,16 @@ void ParticleFactory::Draw(XMMATRIX* view, XMMATRIX* projection, XMFLOAT3* camer
 					m_age = 2.0f;
 					(*itr)->color = XMFLOAT4(RandomZeroToOne(), RandomZeroToOne(), RandomZeroToOne(), 1.0f);
 					(*itr)->gravity = 4.5f;
-					(*itr)->position = XMFLOAT3(0.0f, 1.0f, 3.0f);
+					(*itr)->position = XMFLOAT3(0.0f, 5.0f, 3.0f);
 					(*itr)->velocity = XMFLOAT3(RandomNegOneToPosOne(), 2.5f, RandomNegOneToPosOne());
 					(*itr)->scale = 0.3f;
 					break;
 
 				case Explosion:
-					m_untilParticle == 0.008f;
+					m_untilParticle = 0.008f;
 					m_age = 3.0f;
 					(*itr)->color = XMFLOAT4(1.0f, RandomZeroToOne(), RandomZeroToOne(), 1.0f);
-					(*itr)->gravity = 0.0f;
+					(*itr)->gravity = 0.5f;
 					(*itr)->position = XMFLOAT3(0.0f, 1.0f, 3.0f);
 					(*itr)->velocity = XMFLOAT3(RandomNegOneToPosOne() * 5.0f, RandomNegOneToPosOne() * 5.0f, RandomNegOneToPosOne() * 5.0f);
 					(*itr)->scale = 0.4f;
@@ -374,9 +374,9 @@ void ParticleFactory::Draw(XMMATRIX* view, XMMATRIX* projection, XMFLOAT3* camer
 				if ((*itr)->scale < 0.05f)
 					(*itr)->scale = 0.05f;
 
-				(*itr)->velocity.y -= (*itr)->gravity*(deltaTime);
-				(*itr)->position.x += (*itr)->velocity.x*(deltaTime);
-				(*itr)->position.y += (*itr)->velocity.y*(deltaTime);
+				(*itr)->velocity.y -= (*itr)->gravity * (deltaTime);
+				(*itr)->position.x += (*itr)->velocity.x * (deltaTime);
+				(*itr)->position.y += (*itr)->velocity.y * (deltaTime);
 				(*itr)->position.z += (*itr)->velocity.z * (deltaTime);
 				break;
 
@@ -385,7 +385,7 @@ void ParticleFactory::Draw(XMMATRIX* view, XMMATRIX* projection, XMFLOAT3* camer
 				(*itr)->scale -= 0.10f * (deltaTime);
 				if ((*itr)->scale < 0.05f)
 					(*itr)->scale = 0.05f;
-
+				(*itr)->velocity.y -= (*itr)->gravity * (deltaTime);
 				(*itr)->position.x += (*itr)->velocity.x * (deltaTime);
 				(*itr)->position.y += (*itr)->velocity.y * (deltaTime);
 				(*itr)->position.z += (*itr)->velocity.z * (deltaTime);
@@ -409,7 +409,7 @@ void ParticleFactory::Draw(XMMATRIX* view, XMMATRIX* projection, XMFLOAT3* camer
 			case Explosion:
 				world = GetWorldMatrix();
 				world *= XMMatrixScaling((*itr)->scale, (*itr)->scale, (*itr)->scale);
-				world *= XMMatrixRotationY(XMConvertToRadians(LookAt_XZ((*itr), cameraPosition->x, cameraPosition->z)));
+				//world *= XMMatrixRotationY(XMConvertToRadians(LookAt_XZ((*itr), cameraPosition->x, cameraPosition->z)));
 				world *= XMMatrixTranslation((*itr)->position.x, (*itr)->position.y, (*itr)->position.z);
 				break;
 
@@ -500,10 +500,10 @@ void ParticleFactory::DrawOne(Particle* particle, XMMATRIX* view, XMMATRIX* proj
 float ParticleFactory::LookAt_XZ(Particle* particle, float x, float z)
 {
 	float dx, dz;
-	dx = x - particle->position.x;
-	dz = z - particle->position.z;
+	dx = particle->position.x - x;
+	dz = particle->position.z - z;
 	//m_yAngle = atan2(dx, dz) * (180.0 / XM_PI);
-	float value = atan2(dx, dz) * (180.0 / XM_PI);
+	float value = atan2(dx, dz);
 	return value;
 }
 

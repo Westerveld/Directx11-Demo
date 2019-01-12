@@ -29,7 +29,7 @@ public:
 	void Forward(float distance);
 	void Up(float distance);
 	void Strafe(float distance);
-	void Update(void);
+	void Update();
 	XMMATRIX GetViewMatrix();
 	void ChangeCameraType(CameraType newType) { m_camType = newType; }
 	CameraType GetCameraType(void) { return m_camType; }
@@ -55,5 +55,6 @@ public:
 	xyz GetRight()		{ return maths::SetXYZ(XMVectorGetX(m_right), XMVectorGetY(m_right), XMVectorGetZ(m_right)); }
 	xyz GetUp()			{ return maths::SetXYZ(XMVectorGetX(m_up), XMVectorGetY(m_up), XMVectorGetZ(m_up)); }
 	xyz GetTarget()		{ return maths::SetXYZ(XMVectorGetX(m_target), XMVectorGetY(m_target), XMVectorGetZ(m_target)); }
+
 };
 

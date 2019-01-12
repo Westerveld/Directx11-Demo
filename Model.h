@@ -16,6 +16,13 @@ struct SHINYMODEL_CONSTANT_BUFFER
 	XMMATRIX WorldView;
 };
 
+struct DISSOLVE_CONSTANT_BUFFER
+{
+	XMVECTOR dissolveColor; //16 bytes
+	float dissolveAmount; // 4 bytes
+	XMFLOAT3 packing;   //12 bytes
+
+};
 
 enum ModelType{Normal, Shiny, Dissolve};
 enum CollisionType{Sphere, Box, Mesh};
@@ -31,6 +38,7 @@ private:
 	ID3D11InputLayout*			m_pInputLayout;
 	ID3D11Buffer*				m_pConstantBuffer;
 	ID3D11Buffer*				m_pShinyBuffer;
+	ID3D11Buffer*				m_pDissolveBuffer;
 
 	ID3D11ShaderResourceView*	m_pTexture;
 	ID3D11SamplerState*			m_pSampler;
@@ -46,6 +54,11 @@ private:
 	
 	ModelType					m_type;
 	CollisionType				m_collisionType;
+
+	//Used for a dissolve model
+	ID3D11ShaderResourceView*	m_pDissolveTexture;
+	float						m_dissolveAmount;
+	XMVECTOR					m_dissolveColor;
 public:
 	Model(ID3D11Device* device, ID3D11DeviceContext* deviceContext, LightManager* lights);
 	~Model();
@@ -56,7 +69,11 @@ public:
 	void SetTexture(ID3D11ShaderResourceView* texture) { m_pTexture = texture; }
 	void SetSampler(ID3D11SamplerState* sampler) { m_pSampler = sampler; }
 
-	
+	//Used for dissolve shaders;
+	void SetDissolveTexture(ID3D11ShaderResourceView* texture) { m_pDissolveTexture = texture; }
+	void SetDissolveColor(float r, float g, float b, float a) { m_dissolveColor = XMVectorSet(r, g, b, a); }
+	void SetDissolveAmount(float val);
+	float GetDissolveAmount() { return m_dissolveAmount; }
 
 	//Custom Shader
 	HRESULT LoadDefaultShaders();

@@ -14,6 +14,7 @@ Scene_Node::Scene_Node(string name)
 	m_Zangle = 0.0f;
 	
 	m_scale = 1.0f;
+	m_isTrigger = false;
 }
 
 
@@ -155,8 +156,8 @@ bool Scene_Node::CheckCollision(Scene_Node* compareTree, Scene_Node* objectTreeR
 
 			if (sqrt(dx*dx + dy * dy + dz * dz) < (compareTree->m_model->GetBoundingSphereRadius() * compareTree->m_worldScale) + (this->m_model->GetBoundingSphereRadius() * m_worldScale))
 			{
-
-				return true;
+				if (!m_isTrigger && !compareTree->GetIsTrigger())
+					return true;
 			}
 		}
 		//Box on Box collision
@@ -179,8 +180,8 @@ bool Scene_Node::CheckCollision(Scene_Node* compareTree, Scene_Node* objectTreeR
 				max1.y > min2.y && min1.y < max2.y &&
 				max1.z > min2.z && min1.z < max2.z)
 			{
-				std::cout << "Collided with " << compareTree->m_name;
-				return true;
+				if (!m_isTrigger && !compareTree->GetIsTrigger())
+					return true;
 			}
 		}
 		//Box on Sphere collision
@@ -201,7 +202,8 @@ bool Scene_Node::CheckCollision(Scene_Node* compareTree, Scene_Node* objectTreeR
 				(object2.y + radius) > min.y &&	(object2.y - radius) < max.y &&
 				(object2.z + radius) > min.z &&	(object2.z - radius) < max.z)
 			{
-				return true;
+				if (!m_isTrigger && !compareTree->GetIsTrigger())
+					return true;
 			}
 
 		}
@@ -221,7 +223,8 @@ bool Scene_Node::CheckCollision(Scene_Node* compareTree, Scene_Node* objectTreeR
 				(object1.y + radius) > min.y &&	(object1.y - radius) < max.y &&
 				(object1.z + radius) > min.z &&	(object1.z - radius) < max.z)
 			{
-				return true;
+				if (!m_isTrigger && !compareTree->GetIsTrigger())
+					return true;
 			}
 
 		}

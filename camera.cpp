@@ -214,7 +214,8 @@ void Camera::Update()
 			//Calculate our foward vector
 			m_forward = XMVector3Normalize(m_target - m_position);
 			//Set our forward to 0 so it lays on the xz plane
-			m_forward = XMVectorSetY(m_forward, m_followTarget->GetYPos());
+			m_forward = XMVectorSetY(m_forward, 0.0f);
+			
 			//Normalize the vector
 			m_forward = XMVector3Normalize(m_forward);
 
@@ -223,7 +224,6 @@ void Camera::Update()
 
 			//Calculate our up vector
 			m_up = XMVector3Cross(XMVector3Normalize(m_position - m_target), m_right);
-
 		}
 		break;
 	case TopDown:

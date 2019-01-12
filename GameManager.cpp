@@ -1,6 +1,7 @@
 #include "GameManager.h"
 #include "Player.h"
 #include "Enemy.h"
+#include "Movable.h"
 
 
 
@@ -19,7 +20,7 @@ GameManager::GameManager(float height, float width, HWND* hWnd, HINSTANCE* hInst
 	m_phInst = hInst;
 	m_pInput = new InputHandler(hWnd, hInst);
 	m_pInput->InitialiseKeyboardInput();
-
+	m_enableAlpha = false;
 }
 
 //Game Clean Up
@@ -29,6 +30,8 @@ GameManager::~GameManager()
 	if (m_pPlayer)				delete m_pPlayer;
 	if (m_pRootNode)			delete m_pRootNode;
 	if (m_pParticles)			delete m_pParticles;
+	if (m_pDissolveModel)		delete m_pDissolveModel;
+	if (m_pPushableModel)		delete m_pPushableModel;
 	if (m_pWallModel)			delete m_pWallModel;
 	if (m_pSphereModel)			delete m_pSphereModel;
 	if (m_pPlaneModel)			delete m_pPlaneModel;
@@ -36,6 +39,7 @@ GameManager::~GameManager()
 	if (m_pSkyBox)				delete m_pSkyBox;
 	if (m_pText)				delete m_pText;
 	if (m_pCam)					delete m_pCam;
+	if (m_pTextureDissolve)		m_pTextureDissolve->Release();
 	if (m_pTextureSkyBox)		m_pTextureSkyBox->Release();
 	if (m_pTextureBrick)		m_pTextureBrick->Release();
 	if (m_pTextureFloor)		m_pTextureFloor->Release();
@@ -71,13 +75,13 @@ HRESULT GameManager::InitialiseGraphics()
 	}
 
 #pragma region Texture Setup
-	/*hr = D3DX11CreateShaderResourceViewFromFile(m_pD3DDevice,
+	hr = D3DX11CreateShaderResourceViewFromFile(m_pD3DDevice,
 		"assets/marble1.png", NULL, NULL,
 		&m_pTexture0, NULL);
 	if (FAILED(hr))
 	{
 		return hr;
-	}*/
+	}
 	
 	hr = D3DX11CreateShaderResourceViewFromFile(m_pD3DDevice,
 		"assets/brick.png", NULL, NULL,
@@ -98,6 +102,15 @@ HRESULT GameManager::InitialiseGraphics()
 	hr = D3DX11CreateShaderResourceViewFromFile(m_pD3DDevice,
 		"assets/floor.jpg", NULL, NULL,
 		&m_pTextureFloor, NULL);
+
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	hr = D3DX11CreateShaderResourceViewFromFile(m_pD3DDevice,
+		"assets/dissolve.png", NULL, NULL,
+		&m_pTextureDissolve, NULL);
 
 	if (FAILED(hr))
 	{
@@ -170,7 +183,7 @@ HRESULT GameManager::InitialiseGraphics()
 	m_pSphereModel->SetTexture(m_pTexture0);
 	m_pSphereModel->SetCollisionType(CollisionType::Sphere);
 #pragma endregion
-
+	
 #pragma region Wall Model Setup
 	m_pWallModel = new Model(m_pD3DDevice, m_pImmediateContext, m_pLights);
 	hr = m_pWallModel->LoadObjModel("assets/wall.obj");
@@ -189,6 +202,48 @@ HRESULT GameManager::InitialiseGraphics()
 	m_pWallModel->SetTexture(m_pTextureBrick);
 	m_pWallModel->SetCollisionType(CollisionType::Box);
 #pragma endregion
+
+#pragma region Pushable Model Setup
+	m_pPushableModel = new Model(m_pD3DDevice, m_pImmediateContext, m_pLights);
+	hr = m_pPushableModel->LoadObjModel("assets/pushable.obj");
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+	hr = m_pPushableModel->LoadDefaultShaders();
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	m_pPushableModel->SetSampler(m_pSampler0);
+	m_pPushableModel->SetTexture(m_pTexture0);
+	m_pPushableModel->SetCollisionType(CollisionType::Box);
+
+#pragma endregion
+
+#pragma region Dissolve Model Setup
+	m_pDissolveModel = new Model(m_pD3DDevice, m_pImmediateContext, m_pLights);
+	hr = m_pDissolveModel->LoadObjModel("assets/sphere.obj");
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	hr = m_pDissolveModel->LoadCustomShader("dissolve_shader.hlsl", "DissolveVS", "DissolvePS");
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	m_pDissolveModel->SetSampler(m_pSampler0);
+	m_pDissolveModel->SetTexture(m_pTexture0);
+	m_pDissolveModel->SetDissolveTexture(m_pTextureDissolve);
+	m_pDissolveModel->SetDissolveAmount(1.0f);
+	m_pDissolveModel->SetDissolveColor(0.0f, 0.0f, 1.0f, 1.0f);
+	m_pDissolveModel->SetCollisionType(CollisionType::Box);
+#pragma endregion
+
 
 	m_pParticles = new ParticleFactory(m_pD3DDevice, m_pImmediateContext, m_pLights);
 	m_pParticles->CreateParticle();
@@ -248,7 +303,7 @@ void GameManager::LoadLevel (char* textFile)
 				{
 					m_pPlayerNode = new Scene_Node("Player");
 					m_pPlayerNode->SetModel(m_pCubeModel);
-					m_pPlayer = new Player(m_pPlayerNode, m_pCam, 25.0f);
+					m_pPlayer = new Player(m_pPlayerNode, m_pCam, 10.0f);
 
 					m_pPlayer->SetPosition((j * 6.0f), 1.0f, (i * 6.0f));
 					m_pPlayer->SetGravity(0.0f, -9.81f, 0.0f);
@@ -290,8 +345,37 @@ void GameManager::LoadLevel (char* textFile)
 				//Movable Object
 				case 'M':
 				{
-					m_p
+					m_pMovableNode = new Scene_Node("Movable");
+					m_pMovableNode->SetModel(m_pPushableModel);
+					m_pMovableNode->SetScale(0.1f);
+					m_pMovableNode->SetTrigger(true);
+
+					m_pMovable = new Movable(m_pMovableNode);
+					m_pMovable->SetPosition((j * 6.0f), 0.1f, (i * 6.0f));
 				}
+				break;
+				//Fountain Particles
+				case 'F':
+				{
+					m_pParticles = new ParticleFactory(m_pD3DDevice, m_pImmediateContext, m_pLights);
+					m_pParticles->CreateParticle();
+					m_pParticles->SwitchParticleType(ParticleType::Explosion);
+					m_pParticles->SetActive(true);
+					m_pParticles->SetXPos(j * 6.0f);
+					m_pParticles->SetYPos(1.0f);
+					m_pParticles->SetZPos(i * 6.0f);
+				}
+				break;
+				case 'D':
+				{
+					m_pDissolveNode = new Scene_Node("Dissolve");
+					m_pDissolveNode->SetModel(m_pDissolveModel);
+					m_pDissolveNode->SetScale(0.25f);
+					m_pDissolveNode->SetXPos(j * 6.0f);
+					m_pDissolveNode->SetYPos(1.0f);
+					m_pDissolveNode->SetZPos(i * 6.0f);
+				}
+				break;
 			}
 		}
 	}
@@ -302,8 +386,8 @@ void GameManager::LoadLevel (char* textFile)
 	m_pRootNode->AddChildNode(m_pCameraNode);
 	m_pRootNode->AddChildNode(m_pPlayerNode);
 	m_pRootNode->AddChildNode(m_pEnemyNode);
-
-
+	m_pRootNode->AddChildNode(m_pMovableNode);
+	m_pRootNode->AddChildNode(m_pDissolveNode);
 }
 
 
@@ -315,13 +399,26 @@ void GameManager::Update()
 	m_pCam->Update();
 	UpdateCameraNode();
 	m_pEnemy->Update(m_pRootNode, deltaTime);
+	m_pMovable->Update(m_pRootNode, deltaTime);
+	m_pDissolveNode->GetModel()->SetDissolveAmount(m_pDissolveNode->GetModel()->GetDissolveAmount() - deltaTime);
+	
 }
 
 void GameManager::Render()
 {
+	string s = "Fps ";
+	s += std::to_string(m_pTimer->GetFPS());
+	m_pText->AddText(s, -1, 1, .05);
 	float clearCol[4] = { 0.0f,0.1f,0.1f,1.0f };
 	m_pImmediateContext->ClearRenderTargetView(m_pBackBufferRTView, clearCol);
 	m_pImmediateContext->ClearDepthStencilView(m_pZBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	m_pImmediateContext->OMSetBlendState(0, 0, 0xffffffff);
+	if (m_enableAlpha)
+	{
+		float blendFactor[] = { 0.75f, 0.75f,0.75f,1.0f };
+		m_pImmediateContext->OMSetBlendState(m_pTransparencyBlend, blendFactor, 0xffffffff);
+	}
 	XMMATRIX world, view, projection;
 
 	world = XMMatrixIdentity();
@@ -332,6 +429,11 @@ void GameManager::Render()
 
 	m_pRootNode->Execute(&world, &view, &projection);
 
+
+	m_pParticles->Draw(&view, &projection, &XMFLOAT3(m_pCam->GetX(), m_pCam->GetY(), m_pCam->GetZ()));
+
+	//RenderText last
+	m_pText->RenderText();
 	m_pSwapChain->Present(0, 0);
 }
 
@@ -448,6 +550,11 @@ void GameManager::CheckInputs()
 	{
 		m_pCam->ChangeCameraType(TopDown);
 		UpdateCameraNode();
+	}
+
+	if (m_pInput->GetMouseButtonDown(1))
+	{
+		m_enableAlpha = !m_enableAlpha;
 	}
 
 	if (m_pInput->GetMouseScroll() > 0)
@@ -654,6 +761,28 @@ HRESULT GameManager::SetupDirectX()
 
 
 	m_pImmediateContext->RSSetViewports(1, &viewport);
+
+
+	//Define beldning
+	D3D11_BLEND_DESC blendDesc;
+	ZeroMemory(&blendDesc, sizeof(blendDesc));
+
+	D3D11_RENDER_TARGET_BLEND_DESC renderBlend;
+
+	renderBlend.BlendEnable				= true;
+	renderBlend.SrcBlend				= D3D11_BLEND_SRC_COLOR;
+	renderBlend.DestBlend				= D3D11_BLEND_BLEND_FACTOR;
+	renderBlend.BlendOp					= D3D11_BLEND_OP_ADD;
+	renderBlend.SrcBlendAlpha			= D3D11_BLEND_ONE;
+	renderBlend.DestBlendAlpha			= D3D11_BLEND_ZERO;
+	renderBlend.BlendOpAlpha			= D3D11_BLEND_OP_ADD;
+	renderBlend.RenderTargetWriteMask	= D3D10_COLOR_WRITE_ENABLE_ALL;
+
+	blendDesc.AlphaToCoverageEnable = false;
+	blendDesc.RenderTarget[0] = renderBlend;
+
+	m_pD3DDevice->CreateBlendState(&blendDesc, &m_pTransparencyBlend);
+
 
 	return S_OK;
 

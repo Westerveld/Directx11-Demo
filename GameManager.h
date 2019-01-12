@@ -15,8 +15,11 @@ private:
 	ID3D11ShaderResourceView*		m_pTextureBrick;
 	ID3D11ShaderResourceView*		m_pTextureSkyBox;
 	ID3D11ShaderResourceView*		m_pTextureFloor;
+	ID3D11ShaderResourceView*		m_pTextureDissolve;
 
 	ID3D11SamplerState*				m_pSampler0;
+
+	ID3D11BlendState*				m_pTransparencyBlend;
 
 	LightManager*					m_pLights;
 	Camera*							m_pCam;
@@ -36,6 +39,8 @@ private:
 	Model*							m_pPlaneModel;
 	Model*							m_pCubeModel;
 	Model*							m_pWallModel;
+	Model*							m_pPushableModel;
+	Model*							m_pDissolveModel;
 #pragma endregion
 
 #pragma region Level Objects
@@ -46,12 +51,15 @@ private:
 	Scene_Node*						m_pPlayerNode;
 	Scene_Node*						m_pCameraNode;
 	Scene_Node*						m_pEnemyNode;
-	Scene_Node*						m_pMoveableNode;
+	Scene_Node*						m_pMovableNode;
+	Scene_Node*						m_pDissolveNode;
 #pragma endregion
 	float							m_pScreenHeight, m_pScreenWidth;
 
 	void							UpdateCameraNode();
 	std::vector<std::string>		m_pLevel;
+
+	bool							m_enableAlpha;
 public:
 	class TimeHandler				*m_pTimer;
 

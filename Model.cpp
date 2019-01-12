@@ -60,10 +60,17 @@ HRESULT Model::LoadObjModel(char* filename)
 		return hr;
 	}
 
+	ZeroMemory(&constantBufferDesc, sizeof(constantBufferDesc));
+
+	constantBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	constantBufferDesc.ByteWidth = 112;
+	constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+
+	hr = m_pD3DDevice->CreateBuffer(&constantBufferDesc, NULL, &m_pDissolveBuffer);
 
 	
-	CalculateModelCentrePoint();
-	CalculateBoudingSphereRadius();
+	///CalculateModelCentrePoint();
+	//CalculateBoudingSphereRadius();
 
 	return S_OK;
 }
@@ -234,6 +241,10 @@ void Model::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection)
 	SHINYMODEL_CONSTANT_BUFFER sm_cbValue;
 	sm_cbValue.WorldView = (*world) * (*view);
 
+	DISSOLVE_CONSTANT_BUFFER d_cbValues;
+	d_cbValues.dissolveAmount = m_dissolveAmount;
+	d_cbValues.dissolveColor = m_dissolveColor;
+
 	
 	//Upload new values to buffer
 	m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, 0, &model_cbValues, 0, 0);
@@ -249,12 +260,24 @@ void Model::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection)
 		m_pImmediateContext->PSSetConstantBuffers(1, 1, &m_pShinyBuffer);
 	}
 
+	if (m_type == ModelType::Dissolve)
+	{
+		m_pImmediateContext->UpdateSubresource(m_pDissolveBuffer, 0, 0, &d_cbValues, 0, 0);
+		m_pImmediateContext->VSSetConstantBuffers(1, 1, &m_pDissolveBuffer);
+		m_pImmediateContext->PSSetConstantBuffers(1, 1, &m_pDissolveBuffer);
+	}
 
 	if (m_pSampler && m_pTexture)
 	{
 		//Set texture
 		m_pImmediateContext->PSSetSamplers(0, 1, &m_pSampler);
 		m_pImmediateContext->PSSetShaderResources(0, 1, &m_pTexture);
+	}
+
+
+	if (m_pDissolveTexture)
+	{
+		m_pImmediateContext->PSGetShaderResources(1, 1, &m_pDissolveTexture);
 	}
 
 	m_pObject->Draw();
@@ -366,5 +389,17 @@ void Model::SetCollisionType(CollisionType newType)
 
 	}
 	m_collisionType = newType;
+}
+
+void Model::SetDissolveAmount(float val)
+{
+	if (val < 0.0f)
+	{
+		m_dissolveAmount = 1;
+	}
+	else
+	{
+		m_dissolveAmount = val;
+	}
 }
 #pragma endregion

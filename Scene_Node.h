@@ -3,13 +3,14 @@
 #include "maths.h"
 #include <iostream>
 
+
 class Scene_Node
 {
 private:
 	Model*					m_model;
 	vector<Scene_Node*>		m_children;
 	string					m_name;
-
+	bool					m_isTrigger;
 
 	float					m_x, m_y, m_z;
 
@@ -69,10 +70,14 @@ public:
 	float GetScale(void) { return m_scale; }
 
 	void SetModel(Model* model) { m_model = model; }
+	Model* GetModel() { return m_model; }
 	
 	string GetName() { return m_name; }
 
 	XMVECTOR GetWorldCentre(void);
+
+	void SetTrigger(bool val) { m_isTrigger = val; }
+	bool GetIsTrigger() { return m_isTrigger; }
 #pragma endregion 
 };
 
