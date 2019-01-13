@@ -312,7 +312,7 @@ void GameManager::LoadLevel (char* textFile)
 
 	}
 
-	for (int i = 0; i < m_pLevel.size(); i++)
+	for (size_t i = 0; i < m_pLevel.size(); i++)
 	{
 		std::string s = m_pLevel[i];
 		int sLength = s.length();
@@ -326,9 +326,9 @@ void GameManager::LoadLevel (char* textFile)
 					Scene_Node* wall = new Scene_Node("Wall");
 					wall->SetModel(m_pWallModel);
 					wall->SetScale(0.2f);
-					wall->SetXPos(j*6);
+					wall->SetXPos((float)j*6.0f);
 					wall->SetYPos(0.0f);
-					wall->SetZPos(i*6);
+					wall->SetZPos((float)i*6.0f);
 					m_pWallRoot->AddChildNode(wall);
 				}
 				break;
@@ -339,12 +339,12 @@ void GameManager::LoadLevel (char* textFile)
 					m_pPlayerNode->SetModel(m_pCubeModel);
 					m_pPlayer = new Player(m_pPlayerNode, m_pCam, 10.0f, 1.0f);
 
-					m_pPlayer->SetPosition((j * 6.0f), 1.0f, (i * 6.0f));
+					m_pPlayer->SetPosition(((float)j * 6.0f), 1.0f, ((float)i * 6.0f));
 					m_pPlayer->SetGravity(0.0f, -9.81f, 0.0f);
 					//UpdatePlayerNode();
 
 					m_pCameraNode = new Scene_Node("Camera");
-					m_pCam->SetPosition(j*6, 0, i*6);
+					m_pCam->SetPosition((float)j*6.0f, 0, (float)i*6.0f);
 
 					m_pCam->SetTarget(m_pPlayerNode);
 					m_pCam->ChangeCameraType(ThirdPerson);
@@ -400,9 +400,9 @@ void GameManager::LoadLevel (char* textFile)
 
 					m_pParticleNode = new Scene_Node("Particle");
 					m_pParticleNode->SetParticle(m_pParticles);
-					m_pParticleNode->SetXPos(j);
+					m_pParticleNode->SetXPos((float)j);
 					m_pParticleNode->SetYPos(2.0f);
-					m_pParticleNode->SetZPos(i);
+					m_pParticleNode->SetZPos((float)i);
 				}
 				break;
 				//Disoolve Model
@@ -410,9 +410,9 @@ void GameManager::LoadLevel (char* textFile)
 				{
 					m_pDissolveNode = new Scene_Node("Dissolve");
 					m_pDissolveNode->SetModel(m_pDissolveModel);
-					m_pDissolveNode->SetXPos(j * 6.0f);
+					m_pDissolveNode->SetXPos((float)j * 6.0f);
 					m_pDissolveNode->SetYPos(3.0f);
-					m_pDissolveNode->SetZPos(i * 6.0f);
+					m_pDissolveNode->SetZPos((float)i * 6.0f);
 					m_pDissolveNode->SetTrigger(true);
 				}
 				break;
@@ -422,9 +422,9 @@ void GameManager::LoadLevel (char* textFile)
 					m_pReflectionNode = new Scene_Node("Reflection");
 					m_pReflectionNode->SetModel(m_pReflectModel);
 					m_pReflectionNode->SetScale(0.5f);
-					m_pReflectionNode->SetXPos(j*6.0f);
+					m_pReflectionNode->SetXPos((float)j * 6.0f);
 					m_pReflectionNode->SetYPos(1.5f);
-					m_pReflectionNode->SetZPos(i * 6.0f);
+					m_pReflectionNode->SetZPos((float)i * 6.0f);
 				}
 				break;
 			}
@@ -487,7 +487,7 @@ void GameManager::Render()
 	m_pRootNode->Execute(&world, &view, &projection, m_pCam);
 
 
-	//m_pMinimap->RenderMap(m_pRootNode);
+	m_pMinimap->RenderMap(m_pRootNode);
 
 	m_pImmediateContext->OMSetRenderTargets(1, &m_pBackBufferRTView, m_pZBuffer);
 

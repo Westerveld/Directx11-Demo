@@ -76,11 +76,11 @@ HRESULT Model::LoadObjModel(char* filename)
 	D3D11_RENDER_TARGET_BLEND_DESC renderBlend;
 
 	renderBlend.BlendEnable = true;
-	renderBlend.SrcBlend = D3D11_BLEND_SRC_COLOR;
-	renderBlend.DestBlend = D3D11_BLEND_BLEND_FACTOR;
+	renderBlend.SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	renderBlend.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
 	renderBlend.BlendOp = D3D11_BLEND_OP_ADD;
-	renderBlend.SrcBlendAlpha = D3D11_BLEND_ZERO;
-	renderBlend.DestBlendAlpha = D3D11_BLEND_ONE;
+	renderBlend.SrcBlendAlpha = D3D11_BLEND_ONE;
+	renderBlend.DestBlendAlpha = D3D11_BLEND_ZERO;
 	renderBlend.BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	renderBlend.RenderTargetWriteMask = D3D10_COLOR_WRITE_ENABLE_ALL;
 

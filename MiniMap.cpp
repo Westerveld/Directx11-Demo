@@ -168,6 +168,7 @@ void MiniMap::RenderMap(Scene_Node* rootNode)
 	m_pImmediateContext->VSSetShader(m_pVShader, 0, 0);
 	m_pImmediateContext->PSSetShader(m_pPShader, 0, 0);
 	m_pImmediateContext->IASetInputLayout(m_pInputLayout);
+
 	m_pImmediateContext->PSSetSamplers(0, 1, &m_pSampler0);
 	XMMATRIX world = XMMatrixIdentity();
 	XMMATRIX view = m_pCam->GetViewMatrix();
@@ -176,7 +177,7 @@ void MiniMap::RenderMap(Scene_Node* rootNode)
 	rootNode->Execute(&world, &view, &proj, m_pCam);
 
 
-	world = XMMatrixScaling(0.25f, 0.25f, 0.25f) * XMMatrixTranslation(0.25f, -0.25f, 0.0f);
+	world = XMMatrixScaling(0.25f, 0.25f, 0.25f) * XMMatrixTranslation(0.25f, 0.25f, 1.0f);
 
 	MINIMAP_CONSTANT_BUFFER m_buffer;
 	m_buffer.WorldViewProjection = XMMatrixTranspose(world);
