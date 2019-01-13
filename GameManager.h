@@ -63,6 +63,7 @@ private:
 	float							m_pScreenHeight, m_pScreenWidth;
 
 	void							UpdateCameraNode(void);
+	void							UpdateText(void);
 	
 	std::vector<std::string>		m_pLevel;
 

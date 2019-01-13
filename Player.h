@@ -11,12 +11,16 @@ private:
 	void			CalculateForwardVector(void);
 	void			CalculateRightVector(void);
 
+	float			m_groundY;
+	float			m_jumpTimer;
+	bool			m_jumping;
 public:
-	Player(Scene_Node* myNode, Camera* cam, float speed);
+	Player(Scene_Node* myNode, Camera* cam, float speed, float defaultY);
 	~Player();
 
-	void Update(void);
+	void Update(float delta);
 	void MoveForward(float distance);
 	void MoveRight(float distance);
+	void Jump();
 };
 

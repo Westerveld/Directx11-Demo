@@ -20,6 +20,7 @@ struct VOut
 	float4 position : SV_POSITION;
 	float4 color : COLOR;
 	float3 texcoord : TEXCOORD; 
+	float3 texcoordNorm : TEXCOORD1;
 	float3 normal : NORMAL;
 };
 
@@ -32,7 +33,7 @@ VOut ModelVS(float4 position : POSITION, float3 texcoord : TEXCOORD, float3 norm
 	//output.normal = normalize(output.normal);
 
 	output.color = float4(1, 1, 1, 1);
-
+	output.texcoordNorm = texcoord;
 
 	float3 wvpos = mul(worldView, position).xyz;
 	float3 wvnormal = mul((float3x3)worldView, normal);
@@ -47,5 +48,5 @@ VOut ModelVS(float4 position : POSITION, float3 texcoord : TEXCOORD, float3 norm
 
 float4 ModelPS(in VOut input) : SV_TARGET
 {
-	return skyboxTexture.Sample(sampler0, input.texcoord) * texture0.Sample(sampler0, input.texcoord) ;
+	return skyboxTexture.Sample(sampler0, input.texcoord) * texture0.Sample(sampler0, input.texcoordNorm) ;
 }

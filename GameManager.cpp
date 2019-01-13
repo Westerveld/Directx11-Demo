@@ -130,7 +130,7 @@ HRESULT GameManager::InitialiseGraphics()
 	m_pUICam = new Camera(0.0, 0.0, -0.5, 0.0, 1.0f, 45.0f);
 	m_pUICam->ChangeCameraType(CameraType::TopDown);
 
-	m_pText = new Text2D("assets/font1.bmp", m_pD3DDevice, m_pImmediateContext);
+	m_pText = new Text2D("assets/font2.bmp", m_pD3DDevice, m_pImmediateContext);
 
 	m_pSkyBox = new SkyBox(m_pD3DDevice, m_pImmediateContext);
 	m_pSkyBox->CreateSkybox(m_pTextureSkyBox);
@@ -337,7 +337,7 @@ void GameManager::LoadLevel (char* textFile)
 				{
 					m_pPlayerNode = new Scene_Node("Player");
 					m_pPlayerNode->SetModel(m_pCubeModel);
-					m_pPlayer = new Player(m_pPlayerNode, m_pCam, 10.0f);
+					m_pPlayer = new Player(m_pPlayerNode, m_pCam, 10.0f, 1.0f);
 
 					m_pPlayer->SetPosition((j * 6.0f), 1.0f, (i * 6.0f));
 					m_pPlayer->SetGravity(0.0f, -9.81f, 0.0f);
@@ -410,10 +410,10 @@ void GameManager::LoadLevel (char* textFile)
 				{
 					m_pDissolveNode = new Scene_Node("Dissolve");
 					m_pDissolveNode->SetModel(m_pDissolveModel);
-					m_pDissolveNode->SetScale(0.25f);
 					m_pDissolveNode->SetXPos(j * 6.0f);
-					m_pDissolveNode->SetYPos(1.0f);
+					m_pDissolveNode->SetYPos(3.0f);
 					m_pDissolveNode->SetZPos(i * 6.0f);
+					m_pDissolveNode->SetTrigger(true);
 				}
 				break;
 				//Reflection Model
@@ -421,9 +421,9 @@ void GameManager::LoadLevel (char* textFile)
 				{
 					m_pReflectionNode = new Scene_Node("Reflection");
 					m_pReflectionNode->SetModel(m_pReflectModel);
-					m_pReflectionNode->SetScale(0.25f);
+					m_pReflectionNode->SetScale(0.5f);
 					m_pReflectionNode->SetXPos(j*6.0f);
-					m_pReflectionNode->SetYPos(1.0f);
+					m_pReflectionNode->SetYPos(1.5f);
 					m_pReflectionNode->SetZPos(i * 6.0f);
 				}
 				break;
@@ -449,21 +449,20 @@ void GameManager::LoadLevel (char* textFile)
 void GameManager::Update()
 {
 	float deltaTime = m_pTimer->GetDeltaTime();
-	m_pPlayer->Update();
+	m_pPlayer->Update(deltaTime);
 	m_pCam->Update();
 	UpdateCameraNode();
 	m_pUICam->Update();
 	m_pEnemy->Update(m_pRootNode, deltaTime);
 	m_pMovable->Update(m_pRootNode, deltaTime);
-	m_pDissolveNode->GetModel()->SetDissolveAmount(m_pDissolveNode->GetModel()->GetDissolveAmount() - deltaTime);
+	m_pDissolveNode->GetModel()->SetDissolveAmount(m_pDissolveNode->GetModel()->GetDissolveAmount() - 0.0005f);
 	
 }
 
 void GameManager::Render()
 {
-	string s = "Fps ";
-	s += std::to_string(m_pTimer->GetFPS());
-	m_pText->AddText(s, -1, 1, .05);
+	
+	UpdateText();
 	float clearCol[4] = { 0.0f,0.1f,0.1f,1.0f };
 	m_pImmediateContext->ClearRenderTargetView(m_pBackBufferRTView, clearCol);
 	m_pImmediateContext->ClearDepthStencilView(m_pZBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
@@ -488,13 +487,15 @@ void GameManager::Render()
 	m_pRootNode->Execute(&world, &view, &projection, m_pCam);
 
 
-	m_pMinimap->RenderMap(m_pRootNode);
+	//m_pMinimap->RenderMap(m_pRootNode);
 
 	m_pImmediateContext->OMSetRenderTargets(1, &m_pBackBufferRTView, m_pZBuffer);
 
 
 	//Render Text last
+	m_pImmediateContext->OMSetBlendState(m_pTransparencyBlend, 0, 0xffffffff);
 	m_pText->RenderText();
+	m_pImmediateContext->OMSetBlendState(0, 0, 0xffffffff);
 	m_pSwapChain->Present(0, 0);
 }
 
@@ -589,7 +590,7 @@ void GameManager::CheckInputs()
 	}
 	if (m_pInput->IsKeyPressed(DIK_SPACE))
 	{
-		m_pPlayer->Jump(deltaTime * 30.0f);
+		m_pPlayer->Jump();
 	}
 
 	if (m_pInput->IsKeyPressed(DIK_8))
@@ -847,4 +848,14 @@ HRESULT GameManager::SetupDirectX()
 
 	return S_OK;
 
+}
+
+void GameManager::UpdateText()
+{
+	string fps = "Fps ";
+	fps += std::to_string(m_pTimer->GetFPS());
+	m_pText->AddText(fps, -1, 1, .07);
+
+	string info = "WASD to Move";
+	m_pText->AddText(info, -1, -0.93, .07);
 }

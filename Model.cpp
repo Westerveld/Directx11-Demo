@@ -63,12 +63,32 @@ HRESULT Model::LoadObjModel(char* filename)
 	ZeroMemory(&constantBufferDesc, sizeof(constantBufferDesc));
 
 	constantBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	constantBufferDesc.ByteWidth = 112;
+	constantBufferDesc.ByteWidth = 16;
 	constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 
 	hr = m_pD3DDevice->CreateBuffer(&constantBufferDesc, NULL, &m_pDissolveBuffer);
 
-	
+
+	//Define beldning
+	D3D11_BLEND_DESC blendDesc;
+	ZeroMemory(&blendDesc, sizeof(blendDesc));
+
+	D3D11_RENDER_TARGET_BLEND_DESC renderBlend;
+
+	renderBlend.BlendEnable = true;
+	renderBlend.SrcBlend = D3D11_BLEND_SRC_COLOR;
+	renderBlend.DestBlend = D3D11_BLEND_BLEND_FACTOR;
+	renderBlend.BlendOp = D3D11_BLEND_OP_ADD;
+	renderBlend.SrcBlendAlpha = D3D11_BLEND_ZERO;
+	renderBlend.DestBlendAlpha = D3D11_BLEND_ONE;
+	renderBlend.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	renderBlend.RenderTargetWriteMask = D3D10_COLOR_WRITE_ENABLE_ALL;
+
+	blendDesc.AlphaToCoverageEnable = false;
+	blendDesc.RenderTarget[0] = renderBlend;
+
+	m_pD3DDevice->CreateBlendState(&blendDesc, &m_pTransparencyBlend);
+
 	///CalculateModelCentrePoint();
 	//CalculateBoudingSphereRadius();
 
@@ -142,7 +162,6 @@ HRESULT Model::LoadDefaultShaders()
 	return S_OK;
 }
 
-//Doesn't work yet
 HRESULT Model::LoadCustomShader(char* fileName, char* vertexShaderFunction, char* pixelShaderFunction)
 {
 	HRESULT hr = S_OK;
@@ -221,6 +240,11 @@ void Model::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection)
 			return;
 	}
 
+	if (m_type == ModelType::Dissolve)
+		m_pImmediateContext->OMSetBlendState(m_pTransparencyBlend, 0, 0xffffffff);
+	else
+		m_pImmediateContext->OMSetBlendState(0, 0, 0xffffffff);
+	
 	//Set input layout and shaders active
 	m_pImmediateContext->VSSetShader(m_pVShader, 0, 0);
 	m_pImmediateContext->PSSetShader(m_pPShader, 0, 0);
@@ -243,7 +267,9 @@ void Model::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection)
 
 	DISSOLVE_CONSTANT_BUFFER d_cbValues;
 	d_cbValues.dissolveAmount = m_dissolveAmount;
-	d_cbValues.dissolveColor = m_dissolveColor;
+	d_cbValues.specExp = 0.5f;
+	d_cbValues.specularIntensity = m_dissolveAmount;
+	//d_cbValues.dissolveColor = m_dissolveColor;
 
 	
 	//Upload new values to buffer
@@ -399,7 +425,7 @@ void Model::SetDissolveAmount(float val)
 {
 	if (val < 0.0f)
 	{
-		m_dissolveAmount = 1;
+		m_dissolveAmount = 1.0f;
 	}
 	else
 	{

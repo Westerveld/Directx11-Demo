@@ -9,7 +9,10 @@ cbuffer CB0
 cbuffer CB_dissolve
 {
 	float dissolveAmount;
-	float4 borderColor;
+	float specIntensity;
+	float specExp;
+	float fill;
+	//float4 borderColor;
 };
 
 Texture2D texture0;
@@ -36,8 +39,9 @@ VOut DissolveVS(float4 position : POSITION, float2 texcoord : TEXCOORD, float3 n
     
     float diffuse_amount    = dot(dirLightPos.xyz, normal);
     diffuse_amount          = saturate(diffuse_amount);
-    output.color            = ambLightCol + (dirLightCol * diffuse_amount);
-	output.normal = normal;
+	output.color			= default_color;
+	output.color			+= (ambLightCol + (dirLightCol * diffuse_amount)) * specIntensity;
+	output.normal			= normal;
 	return output;
 }
 
@@ -45,12 +49,12 @@ VOut DissolveVS(float4 position : POSITION, float2 texcoord : TEXCOORD, float3 n
 float4 DissolvePS(float4 position : SV_POSITION, float4 color : COLOR, float2 texcoord : TEXCOORD) : SV_TARGET
 {
 	float4 defCol = texture0.Sample(sampler0, texcoord);
-	float noiseSample = alphaCutout.Sample(sampler0, texcoord).w;
-	clip(noiseSample - dissolveAmount  < 0.01f ? -1 : 1);
+	float noiseSample = alphaCutout.Sample(sampler0, texcoord).x;
+	clip(noiseSample - dissolveAmount);
 	float4 emissive = { 0,0,0,0 };
-	if (noiseSample - dissolveAmount < 0.05f)
+	if (noiseSample - dissolveAmount < 0.02f)
 	{
-		emissive = borderColor;
+		emissive = float4(1,1,1,1);
 	}
 	return (color + emissive) * defCol;
 }

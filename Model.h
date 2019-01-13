@@ -13,14 +13,16 @@ struct MODEL_CONSTANT_BUFFER
 
 struct SHINYMODEL_CONSTANT_BUFFER
 {
-	XMMATRIX WorldView;
+	XMMATRIX WorldView; // 64 bytes
 };
 
 struct DISSOLVE_CONSTANT_BUFFER
 {
-	XMVECTOR dissolveColor; //16 bytes
 	float dissolveAmount; // 4 bytes
-	XMFLOAT3 packing;   //12 bytes
+	float specularIntensity; //4 bytes
+	float specExp; //4bytes
+	float fill;//4 bytes
+	//XMVECTOR dissolveColor; //16 bytes
 
 };
 
@@ -60,6 +62,8 @@ private:
 
 	//Used for a dissolve model
 	ID3D11ShaderResourceView*	m_pDissolveTexture;
+	ID3D11BlendState*			m_pTransparencyBlend;
+
 	float						m_dissolveAmount;
 	XMVECTOR					m_dissolveColor;
 public:
