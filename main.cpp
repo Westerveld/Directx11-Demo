@@ -8,7 +8,7 @@ HWND		g_hWnd = NULL;
 
 
 // Rename for each tutorial – This will appear in the title bar of the window
-char		g_TutorialName[100] = "EB AE02\0";
+char		g_TutorialName[100] = "Ethan Bruins AE02\0";
 
 GameManager*			g_pGameManager;
 
@@ -37,7 +37,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return 0;
 	}
 
-	if (FAILED(g_pGameManager->SetupDirectX()))
+	if (FAILED(g_pGameManager->SetUpDirectX()))
 	{
 		DXTRACE_MSG("Failed to create Device");
 		return 0;
@@ -62,6 +62,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 		else
 		{
+			//Game Loop
 			if (g_pGameManager)
 			{
 				g_pGameManager->m_pTimer->UpdateTimer();
@@ -83,7 +84,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 HRESULT InitialiseWindow(HINSTANCE hInstance, int nCmdShow)
 {
 	// Give your app your own name
-	char Name[100] = "Ethan Bruins";
+	char Name[100] = "Ethan Bruins - AE2";
 
 	// Register class
 	WNDCLASSEX wcex = { 0 };
@@ -104,10 +105,13 @@ HRESULT InitialiseWindow(HINSTANCE hInstance, int nCmdShow)
 	g_hWnd = CreateWindow(Name, g_TutorialName, WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left,
 		rc.bottom - rc.top, NULL, NULL, hInstance, NULL);
+
 	if (!g_hWnd)
 		return E_FAIL;
 
 	ShowWindow(g_hWnd, nCmdShow);
+
+	//Set up the game manager
 	g_pGameManager = new GameManager((UINT)(rc.bottom - rc.top), (UINT)(rc.right - rc.left), &g_hWnd, &g_hInst);
 
 	return S_OK;
@@ -136,7 +140,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			if (g_pGameManager->GetSwapChain())
 			{
-				//g_pGameManager->ResizeWindow(&lParam);
 				g_pGameManager->GetImmediateContext()->OMSetRenderTargets(0, 0, 0);
 
 				g_pGameManager->ReleaseRenderTarget();

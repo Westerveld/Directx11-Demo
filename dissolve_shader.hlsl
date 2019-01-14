@@ -18,6 +18,7 @@ cbuffer CB_dissolve
 Texture2D texture0;
 Texture2D alphaCutout;
 SamplerState sampler0;
+SamplerState alphaSampler;
 
 struct VOut
 {
@@ -49,7 +50,7 @@ VOut DissolveVS(float4 position : POSITION, float2 texcoord : TEXCOORD, float3 n
 float4 DissolvePS(float4 position : SV_POSITION, float4 color : COLOR, float2 texcoord : TEXCOORD) : SV_TARGET
 {
 	float4 defCol = texture0.Sample(sampler0, texcoord);
-	float noiseSample = alphaCutout.Sample(sampler0, texcoord).x;
+	float noiseSample = alphaCutout.Sample(alphaSampler, texcoord).x;
 	clip(noiseSample - dissolveAmount);
 	float4 emissive = { 0,0,0,0 };
 	if (noiseSample - dissolveAmount < 0.02f)

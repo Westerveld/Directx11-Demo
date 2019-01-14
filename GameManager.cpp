@@ -276,12 +276,14 @@ HRESULT GameManager::InitialiseGraphics()
 
 #pragma endregion
 
+	//Particle set up
 	m_pParticles = new ParticleFactory(m_pD3DDevice, m_pImmediateContext, m_pLights);
 	m_pParticles->CreateParticle();
 	m_pParticles->SetActive(true);
 
-	m_pMinimap = new MiniMap(m_pD3DDevice, m_pImmediateContext, m_pZBuffer, m_pScreenHeight, m_pScreenHeight);
-	m_pMinimap->SetUpMiniMap();
+	//Mini map set up
+	m_pMinimap = new MiniMap(m_pScreenHeight, m_pScreenHeight);
+	hr = m_pMinimap->SetUpMiniMap(m_pD3DDevice, m_pImmediateContext);
 	m_pMinimap->SetCamera(m_pUICam);
 	return hr;
 }
@@ -470,11 +472,7 @@ void GameManager::Render()
 	m_pImmediateContext->OMSetRenderTargets(1, &m_pBackBufferRTView, m_pZBuffer);
 
 	m_pImmediateContext->OMSetBlendState(0, 0, 0xffffffff);
-	if (m_enableAlpha)
-	{
-		float blendFactor[] = { 0.75f, 0.75f,0.75f,1.0f };
-		m_pImmediateContext->OMSetBlendState(m_pTransparencyBlend, blendFactor, 0xffffffff);
-	}
+
 	//Render the world from the cameras perspective
 	XMMATRIX world, view, projection;
 
@@ -486,8 +484,8 @@ void GameManager::Render()
 
 	m_pRootNode->Execute(&world, &view, &projection, m_pCam);
 
-
-	m_pMinimap->RenderMap(m_pRootNode);
+	//Render to minimap
+	m_pMinimap->AddToMap(m_pRootNode, m_pImmediateContext, m_pZBuffer);
 
 	m_pImmediateContext->OMSetRenderTargets(1, &m_pBackBufferRTView, m_pZBuffer);
 
@@ -495,6 +493,7 @@ void GameManager::Render()
 	//Render Text last
 	m_pImmediateContext->OMSetBlendState(m_pTransparencyBlend, 0, 0xffffffff);
 	m_pText->RenderText();
+	m_pMinimap->RenderMap(m_pImmediateContext, m_pZBuffer);
 	m_pImmediateContext->OMSetBlendState(0, 0, 0xffffffff);
 	m_pSwapChain->Present(0, 0);
 }
@@ -568,24 +567,25 @@ void GameManager::CheckInputs()
 	}
 	else
 	{
+		float camSpeed = 10.0f * deltaTime;
 		//First person camera movement
 		if (m_pInput->IsKeyPressed(DIK_W))
 		{
-			m_pCam->Forward(deltaTime);
+			m_pCam->Forward(camSpeed);
 			UpdateCameraNode();
 		}
 		if (m_pInput->IsKeyPressed(DIK_S))
 		{
-			m_pCam->Forward(-deltaTime);
+			m_pCam->Forward(-camSpeed);
 
 		}
 		if (m_pInput->IsKeyPressed(DIK_A))
 		{
-			m_pCam->Strafe(deltaTime);
+			m_pCam->Strafe(-camSpeed);
 		}
 		if (m_pInput->IsKeyPressed(DIK_D))
 		{
-			m_pCam->Strafe(-deltaTime);
+			m_pCam->Strafe(camSpeed);
 		}
 	}
 	if (m_pInput->IsKeyPressed(DIK_SPACE))
@@ -707,7 +707,8 @@ HRESULT GameManager::ResizeWindow(LPARAM* lParam)
 
 }
 */
-HRESULT GameManager::SetupDirectX()
+
+HRESULT GameManager::SetUpDirectX()
 {
 	HRESULT hr = S_OK;
 

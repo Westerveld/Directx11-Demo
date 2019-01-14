@@ -63,12 +63,14 @@ void Camera::RotateCamera(float yawDegrees, float pitchDegrees)
 				m_camera_rotation_pitch = -179.9f;
 			break;
 		case ThirdPerson:
+			//Clamp the camera
 			if (m_camera_rotation_pitch < -75.0f)
 				m_camera_rotation_pitch = -75.0f;
 			if (m_camera_rotation_pitch > 75.0f)
 				m_camera_rotation_pitch = 75.0f;
 			break;
 		case TopDown:
+			//Prevent pitch rotation
 			m_camera_rotation_pitch = 0;
 			break;
 	}
@@ -230,8 +232,7 @@ void Camera::Update()
 		{
 			m_target = XMVectorSet(m_followTarget->GetXPos(), m_followTarget->GetYPos(), m_followTarget->GetZPos(), 0);
 			
-			//No pitch rotation for top down
-			m_rotationMatrix = XMMatrixRotationRollPitchYaw(0, XMConvertToRadians(m_camera_rotation_yaw), 0);
+			m_rotationMatrix = XMMatrixRotationY(0);
 			m_position = XMVector3TransformNormal(m_dForward, m_rotationMatrix);
 			m_position = XMVector3Normalize(m_position);
 			m_position = XMVectorSet(XMVectorGetX(m_target), XMVectorGetY(m_target) + m_followDistance, XMVectorGetZ(m_target), 0);

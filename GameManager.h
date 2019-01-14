@@ -102,7 +102,7 @@ public:
 	
 #pragma endregion
 
-	HRESULT					SetupDirectX(void);
+	HRESULT					SetUpDirectX(void);
 	//HRESULT				ResizeWindow(LPARAM* lParam); Doesnt work in this class, got it working in main.cpp instead
 
 };

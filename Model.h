@@ -63,6 +63,7 @@ private:
 	//Used for a dissolve model
 	ID3D11ShaderResourceView*	m_pDissolveTexture;
 	ID3D11BlendState*			m_pTransparencyBlend;
+	ID3D11SamplerState*			m_pAlphaSampler;
 
 	float						m_dissolveAmount;
 	XMVECTOR					m_dissolveColor;

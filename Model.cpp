@@ -89,6 +89,18 @@ HRESULT Model::LoadObjModel(char* filename)
 
 	m_pD3DDevice->CreateBlendState(&blendDesc, &m_pTransparencyBlend);
 
+	D3D11_SAMPLER_DESC sampler_desc;
+	ZeroMemory(&sampler_desc, sizeof(sampler_desc));
+	sampler_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sampler_desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampler_desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampler_desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampler_desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sampler_desc.MinLOD = 0;
+	sampler_desc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	hr = m_pD3DDevice->CreateSamplerState(&sampler_desc, &m_pAlphaSampler);
+
 	///CalculateModelCentrePoint();
 	//CalculateBoudingSphereRadius();
 
@@ -308,6 +320,9 @@ void Model::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection)
 	if (m_pDissolveTexture)
 	{
 		m_pImmediateContext->PSSetShaderResources(1, 1, &m_pDissolveTexture);
+
+		if (m_pAlphaSampler)
+			m_pImmediateContext->PSSetSamplers(1, 1, &m_pAlphaSampler);
 	}
 
 	m_pObject->Draw();

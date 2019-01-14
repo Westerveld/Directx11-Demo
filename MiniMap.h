@@ -28,12 +28,12 @@ private:
 	Camera*						m_pCam;
 	float						m_screenHeight, m_screenWidth;
 public:
-	MiniMap(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11DepthStencilView* zBuffer, float height, float width);
+	MiniMap(float height, float width);
 	~MiniMap();
 
-	void SetUpMiniMap();
+	HRESULT SetUpMiniMap(ID3D11Device*	device, ID3D11DeviceContext* context);
 	void SetCamera(Camera* cam) { m_pCam = cam; }
-	void RenderMap(Scene_Node* rootNode);
-
+	void AddToMap(Scene_Node* rootNode, ID3D11DeviceContext* context, ID3D11DepthStencilView*	zBuffer);
+	void RenderMap(ID3D11DeviceContext* context, ID3D11DepthStencilView*	zBuffer);
 };
 
