@@ -22,6 +22,7 @@ GameManager::GameManager(float height, float width, HWND* hWnd, HINSTANCE* hInst
 	m_pInput = new InputHandler(hWnd, hInst);
 	m_pInput->InitialiseKeyboardInput();
 	m_enableAlpha = false;
+	m_placementMutliplier = 6.0f;
 }
 
 //Game Clean Up
@@ -249,7 +250,6 @@ HRESULT GameManager::InitialiseGraphics()
 	m_pDissolveModel->SetTexture(m_pTexture0);
 	m_pDissolveModel->SetDissolveTexture(m_pTextureDissolve);
 	m_pDissolveModel->SetDissolveAmount(1.0f);
-	m_pDissolveModel->SetDissolveColor(0.0f, 0.0f, 1.0f, 1.0f);
 	m_pDissolveModel->SetCollisionType(CollisionType::Sphere);
 	m_pDissolveModel->ChangeModelType(ModelType::Dissolve);
 #pragma endregion
@@ -273,6 +273,27 @@ HRESULT GameManager::InitialiseGraphics()
 	m_pReflectModel->SetSkyboxTexture(m_pTextureSkyBox);
 	m_pReflectModel->ChangeModelType(ModelType::Shiny);
 	m_pReflectModel->SetCollisionType(CollisionType::Sphere);
+
+#pragma endregion
+
+#pragma region Knight Model Setup
+	m_pKnightModel = new Model(m_pD3DDevice, m_pImmediateContext, m_pLights);
+	hr = m_pKnightModel->LoadObjModel("assets/knight.obj");
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	hr = m_pKnightModel->LoadDefaultShaders();
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	m_pKnightModel->SetSampler(m_pSampler0);
+	m_pKnightModel->SetTexture(m_pTextureBrick);
+	m_pKnightModel->ChangeModelType(ModelType::Normal);
+	m_pKnightModel->SetCollisionType(CollisionType::Box);
 
 #pragma endregion
 
@@ -328,9 +349,9 @@ void GameManager::LoadLevel (char* textFile)
 					Scene_Node* wall = new Scene_Node("Wall");
 					wall->SetModel(m_pWallModel);
 					wall->SetScale(0.2f);
-					wall->SetXPos((float)j*6.0f);
+					wall->SetXPos((float)j * m_placementMutliplier);
 					wall->SetYPos(0.0f);
-					wall->SetZPos((float)i*6.0f);
+					wall->SetZPos((float)i * m_placementMutliplier);
 					m_pWallRoot->AddChildNode(wall);
 				}
 				break;
@@ -341,18 +362,18 @@ void GameManager::LoadLevel (char* textFile)
 					m_pPlayerNode->SetModel(m_pCubeModel);
 					m_pPlayer = new Player(m_pPlayerNode, m_pCam, 10.0f, 1.0f);
 
-					m_pPlayer->SetPosition(((float)j * 6.0f), 1.0f, ((float)i * 6.0f));
+					m_pPlayer->SetPosition(((float)j * m_placementMutliplier), 1.0f, ((float)i * m_placementMutliplier));
 					m_pPlayer->SetGravity(0.0f, -9.81f, 0.0f);
 					//UpdatePlayerNode();
 
 					m_pCameraNode = new Scene_Node("Camera");
-					m_pCam->SetPosition((float)j*6.0f, 0, (float)i*6.0f);
+					m_pCam->SetPosition((float)j * m_placementMutliplier, 0, (float)i * m_placementMutliplier);
 
 					m_pCam->SetTarget(m_pPlayerNode);
 					m_pCam->ChangeCameraType(ThirdPerson);
 					m_pCam->SetMinFollow(2.5f);
 					m_pCam->SetMaxFollow(40.0f);
-					m_pCam->SetFollowDistance(10.0f);
+					m_pCam->SetFollowDistance(15.0f);
 					
 					UpdateCameraNode();
 
@@ -369,15 +390,15 @@ void GameManager::LoadLevel (char* textFile)
 					m_pEnemyNode->SetModel(m_pSphereModel);
 					m_pEnemyNode->SetScale(0.5f);
 					m_pEnemy = new Enemy(m_pEnemyNode, 5.0f);
-					m_pEnemy->SetPosition((j * 6.0f), 1.5f, (i * 6.0f));
-					m_pEnemy->AddWaypoint((j * 6.0f), 1.5f, (i * 6.0f));
+					m_pEnemy->SetPosition((j * m_placementMutliplier), 1.5f, (i * m_placementMutliplier));
+					m_pEnemy->AddWaypoint((j * m_placementMutliplier), 1.5f, (i * m_placementMutliplier));
 					
 				}
 				break;
 				//Enemy Waypoint
 				case '*':
 				{
-					m_pEnemy->AddWaypoint((j * 6.0f), 1.5f, (i * 6.0f));
+					m_pEnemy->AddWaypoint((j * m_placementMutliplier), 1.5f, (i * m_placementMutliplier));
 				}
 				break;
 				//Movable Object
@@ -389,7 +410,7 @@ void GameManager::LoadLevel (char* textFile)
 					m_pMovableNode->SetTrigger(true);
 
 					m_pMovable = new Movable(m_pMovableNode);
-					m_pMovable->SetPosition((j * 6.0f), 0.1f, (i * 6.0f));
+					m_pMovable->SetPosition((j * m_placementMutliplier), 0.1f, (i * m_placementMutliplier));
 				}
 				break;
 				//Fountain Particles
@@ -412,9 +433,9 @@ void GameManager::LoadLevel (char* textFile)
 				{
 					m_pDissolveNode = new Scene_Node("Dissolve");
 					m_pDissolveNode->SetModel(m_pDissolveModel);
-					m_pDissolveNode->SetXPos((float)j * 6.0f);
+					m_pDissolveNode->SetXPos((float)j * m_placementMutliplier);
 					m_pDissolveNode->SetYPos(3.0f);
-					m_pDissolveNode->SetZPos((float)i * 6.0f);
+					m_pDissolveNode->SetZPos((float)i * m_placementMutliplier);
 					m_pDissolveNode->SetTrigger(true);
 				}
 				break;
@@ -424,17 +445,30 @@ void GameManager::LoadLevel (char* textFile)
 					m_pReflectionNode = new Scene_Node("Reflection");
 					m_pReflectionNode->SetModel(m_pReflectModel);
 					m_pReflectionNode->SetScale(0.5f);
-					m_pReflectionNode->SetXPos((float)j * 6.0f);
+					m_pReflectionNode->SetXPos((float)j * m_placementMutliplier);
 					m_pReflectionNode->SetYPos(1.5f);
-					m_pReflectionNode->SetZPos((float)i * 6.0f);
+					m_pReflectionNode->SetZPos((float)i * m_placementMutliplier);
 				}
 				break;
+				//Knight Model
+				case 'K':
+				{
+					m_pKnightNode = new Scene_Node("Knight");
+					m_pKnightNode->SetModel(m_pKnightModel);
+					m_pKnightNode->SetScale(0.1f);
+					m_pKnightNode->SetXPos((float)j * m_placementMutliplier);
+					m_pKnightNode->SetYPos(0.0f);
+					m_pKnightNode->SetZPos((float)i * m_placementMutliplier); 
+					m_pLights->SetSpotLightPos(XMVectorSet((float)j * m_placementMutliplier, 5.0f, (float)i * m_placementMutliplier, 0.0f));
+				}
+
 			}
 		}
 	}
 
 	m_pFloor->SetXPos(m_pLevel.size() * 0.5f);
 	m_pFloor->SetZPos(m_pLevel.size() * 0.5f);
+	
 	m_pRootNode->AddChildNode(m_pFloor);
 	m_pRootNode->AddChildNode(m_pWallRoot);
 	m_pRootNode->AddChildNode(m_pCameraNode);
@@ -444,6 +478,7 @@ void GameManager::LoadLevel (char* textFile)
 	m_pRootNode->AddChildNode(m_pDissolveNode);
 	//m_pRootNode->AddChildNode(m_pParticleNode);
 	m_pRootNode->AddChildNode(m_pReflectionNode);
+	m_pRootNode->AddChildNode(m_pKnightNode);
 }
 
 
@@ -457,7 +492,7 @@ void GameManager::Update()
 	m_pUICam->Update();
 	m_pEnemy->Update(m_pRootNode, deltaTime);
 	m_pMovable->Update(m_pRootNode, deltaTime);
-	m_pDissolveNode->GetModel()->SetDissolveAmount(m_pDissolveNode->GetModel()->GetDissolveAmount() - 0.0005f);
+	//m_pDissolveNode->GetModel()->SetDissolveAmount(m_pDissolveNode->GetModel()->GetDissolveAmount() - 0.000005f);
 	
 }
 
@@ -858,5 +893,9 @@ void GameManager::UpdateText()
 	m_pText->AddText(fps, -1, 1, .07);
 
 	string info = "WASD to Move";
-	m_pText->AddText(info, -1, -0.93, .07);
+	m_pText->AddText(info, -1, -0.9, .07);
+
+	string camType;
+	camType += m_pCam->GetCameraTypeString();
+	m_pText->AddText(camType, 0.0, -0.9, 0.07);
 }

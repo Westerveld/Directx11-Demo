@@ -254,3 +254,25 @@ void Camera::SetPosition(float x, float y, float z)
 	m_y = y;
 	m_z = z;
 }
+
+string Camera::GetCameraTypeString()
+{
+	string s;
+	switch (m_camType)
+	{
+	case FirstPerson:
+		s = "First Person";
+		break;
+	case FreeLook:
+		s = "Free Look";
+		break;
+	case ThirdPerson:
+		s = "Third Person";
+		break;
+	case TopDown:
+		s = "Top Down";
+		break;
+
+	}
+	return s;
+}

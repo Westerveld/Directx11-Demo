@@ -33,6 +33,8 @@ public:
 	XMMATRIX GetViewMatrix();
 	void ChangeCameraType(CameraType newType) { m_camType = newType; }
 	CameraType GetCameraType(void) { return m_camType; }
+	string GetCameraTypeString(void);
+
 	void ChangeCameraPerspective(CameraPerspective newPers) { m_camPers = newPers; }
 	CameraPerspective GetCameraPerspective(void) { return m_camPers; }
 	//Return positions

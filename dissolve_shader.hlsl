@@ -4,6 +4,18 @@ cbuffer CB0
     float4 dirLightCol;
     float4 dirLightPos;
     float4 ambLightCol;
+
+
+	float4 pointLightPos;
+	float4 pointLightCol;
+	float pointLightRange;
+
+	float4 spotLightPos;
+	float4 spotLightDir;
+	float4 spotLightCol;
+	float spotLightRange;
+	float spotLightInnerCone;
+	float spotLightOuterCone;
 };
 
 cbuffer CB_dissolve
@@ -41,7 +53,6 @@ VOut DissolveVS(float4 position : POSITION, float2 texcoord : TEXCOORD, float3 n
     float diffuse_amount    = dot(dirLightPos.xyz, normal);
     diffuse_amount          = saturate(diffuse_amount);
 	output.color			= default_color;
-	output.color			+= (ambLightCol + (dirLightCol * diffuse_amount)) * specIntensity;
 	output.normal			= normal;
 	return output;
 }
@@ -51,9 +62,11 @@ float4 DissolvePS(float4 position : SV_POSITION, float4 color : COLOR, float2 te
 {
 	float4 defCol = texture0.Sample(sampler0, texcoord);
 	float noiseSample = alphaCutout.Sample(alphaSampler, texcoord).x;
+	//Discard the pixel if the value is below zero
 	clip(noiseSample - dissolveAmount);
 	float4 emissive = { 0,0,0,0 };
-	if (noiseSample - dissolveAmount < 0.02f)
+	//Make the pixel emissive if the value is below 0.05f
+	if (noiseSample - dissolveAmount < 0.05)
 	{
 		emissive = float4(1,1,1,1);
 	}

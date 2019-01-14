@@ -20,7 +20,7 @@ VOut MiniMapVS(float4 position : POSITION, float2 texcoord : TEXCOORD, float3 no
 	VOut output;
 
 	float4 default_color	= { 1.0,1.0,1.0,1.0 };
-	output.position			= mul(WVPMatrix, position);
+	output.position			= position;
     output.texcoord			= texcoord;
 
     output.color 			= default_color;

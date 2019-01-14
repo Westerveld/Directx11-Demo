@@ -3,26 +3,40 @@
 #include "LightManager.h"
 #include <list>
 
+//General buffer to be sent to the shader - 208 bytes
 struct MODEL_CONSTANT_BUFFER
 {
-	XMMATRIX WorldViewProjection; //64 bytes
-	XMVECTOR dirLightCol; //16 bytes
-	XMVECTOR dirLightPos; //16 bytes
-	XMVECTOR ambLightCol; //16 bytes
+	XMMATRIX WorldViewProjection;	//64 bytes
+	XMVECTOR camPos;				//16 bytes
+	XMVECTOR dirLightCol;			//16 bytes
+	XMVECTOR dirLightPos;			//16 bytes
+	XMVECTOR ambLightCol;			//16 bytes
+
+	XMVECTOR pointLightPos;			//16 bytes
+	XMVECTOR pointLightCol;			//16 bytes
+	float pointLightRange;			//4 bytes
+
+	XMVECTOR spotLightPos;			//16 bytes
+	XMVECTOR spotLightDir;			//16 bytes
+	XMVECTOR spotLightCol;			//16 bytes
+	float spotLightRange;			//4 bytes
+	float spotLightInnerCone;		//4 bytes
+	float spotLightOuterCone;		//4 bytes
 };
 
+//Shiny specific buffer
 struct SHINYMODEL_CONSTANT_BUFFER
 {
 	XMMATRIX WorldView; // 64 bytes
 };
 
+//Dissolve specific buffer
 struct DISSOLVE_CONSTANT_BUFFER
 {
 	float dissolveAmount; // 4 bytes
 	float specularIntensity; //4 bytes
 	float specExp; //4bytes
-	float fill;//4 bytes
-	//XMVECTOR dissolveColor; //16 bytes
+	float fill; //4 bytes
 
 };
 
@@ -66,12 +80,11 @@ private:
 	ID3D11SamplerState*			m_pAlphaSampler;
 
 	float						m_dissolveAmount;
-	XMVECTOR					m_dissolveColor;
 public:
 	Model(ID3D11Device* device, ID3D11DeviceContext* deviceContext, LightManager* lights);
 	~Model();
 	HRESULT LoadObjModel(char* filename);
-	void Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection);
+	void Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, xyz camPos);
 
 	//Texture creation
 	void SetTexture(ID3D11ShaderResourceView* texture)					{ m_pTexture = texture; }
@@ -79,7 +92,6 @@ public:
 
 	//Used for dissolve shaders;
 	void SetDissolveTexture(ID3D11ShaderResourceView* texture)			{ m_pDissolveTexture = texture; }
-	void SetDissolveColor(float r, float g, float b, float a)			{ m_dissolveColor = XMVectorSet(r, g, b, a); }
 	void SetDissolveAmount(float val);
 	float GetDissolveAmount(void)										{ return m_dissolveAmount; }
 

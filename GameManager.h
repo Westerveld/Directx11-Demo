@@ -45,6 +45,7 @@ private:
 	Model*							m_pPushableModel;
 	Model*							m_pDissolveModel;
 	Model*							m_pReflectModel;
+	Model*							m_pKnightModel;
 #pragma endregion
 
 #pragma region Level Objects
@@ -59,6 +60,7 @@ private:
 	Scene_Node*						m_pDissolveNode;
 	Scene_Node*						m_pParticleNode;
 	Scene_Node*						m_pReflectionNode;
+	Scene_Node*						m_pKnightNode;
 #pragma endregion
 	float							m_pScreenHeight, m_pScreenWidth;
 
@@ -68,6 +70,7 @@ private:
 	std::vector<std::string>		m_pLevel;
 
 	bool							m_enableAlpha;
+	float							m_placementMutliplier;
 public:
 	class TimeHandler				*m_pTimer;
 

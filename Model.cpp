@@ -14,12 +14,14 @@ Model::Model(ID3D11Device* device, ID3D11DeviceContext* deviceContext, LightMana
 
 Model::~Model()
 {
+	if (m_pDissolveTexture) m_pDissolveTexture->Release();
+	if (m_pSkyboxTexture) m_pSkyboxTexture->Release();
 	if (m_pTexture) m_pTexture->Release();
 	if (m_pSampler) m_pSampler->Release();
 	if (m_pInputLayout) m_pInputLayout->Release();
 	if (m_pPShader) m_pPShader->Release();
 	if (m_pVShader) m_pVShader->Release();
-	if (m_pShinyBuffer) m_pShinyBuffer->Release();
+	if (m_pDissolveBuffer) m_pDissolveBuffer->Release();
 	if (m_pConstantBuffer) m_pConstantBuffer->Release();
 	if (m_pD3DDevice) m_pD3DDevice->Release();
 	if (m_pImmediateContext) m_pImmediateContext->Release();
@@ -37,7 +39,7 @@ HRESULT Model::LoadObjModel(char* filename)
 	ZeroMemory(&constantBufferDesc, sizeof(constantBufferDesc));
 
 	constantBufferDesc.Usage = D3D11_USAGE_DEFAULT; //Can use UpdateSubresources() to update
-	constantBufferDesc.ByteWidth = 112; //MUST be a multiple of 16, calculate CB struct
+	constantBufferDesc.ByteWidth = 224; //MUST be a multiple of 16, calculate CB struct
 	constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER; //Use as a constant buffer
 
 	hr = m_pD3DDevice->CreateBuffer(&constantBufferDesc, NULL, &m_pConstantBuffer);
@@ -49,17 +51,16 @@ HRESULT Model::LoadObjModel(char* filename)
 
 	ZeroMemory(&constantBufferDesc, sizeof(constantBufferDesc));
 
-	constantBufferDesc.Usage = D3D11_USAGE_DEFAULT; //Can use UpdateSubresources() to update
-	constantBufferDesc.ByteWidth = 64; //MUST be a multiple of 16, calculate CB struct
-	constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER; //Use as a constant buffer
+	constantBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	constantBufferDesc.ByteWidth = 64;
+	constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 
 	hr = m_pD3DDevice->CreateBuffer(&constantBufferDesc, NULL, &m_pShinyBuffer);
-
 	if (FAILED(hr))
 	{
 		return hr;
 	}
-
+	
 	ZeroMemory(&constantBufferDesc, sizeof(constantBufferDesc));
 
 	constantBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -240,7 +241,7 @@ HRESULT Model::LoadCustomShader(char* fileName, char* vertexShaderFunction, char
 	return S_OK;
 }
 
-void Model::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection)
+void Model::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, xyz camPos)
 {
 	//Check shaders are created
 	if (!m_pVShader || !m_pPShader)
@@ -274,8 +275,23 @@ void Model::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection)
 	model_cbValues.dirLightPos = XMVector3Transform(m_lights->GetDirLightPos(), transpose);
 	model_cbValues.dirLightPos = XMVector3Normalize(model_cbValues.dirLightPos);
 
-	SHINYMODEL_CONSTANT_BUFFER sm_cbValue;
-	sm_cbValue.WorldView = (*world) * (*view);
+	//Point Light values
+	model_cbValues.pointLightCol = m_lights->GetPointLightCol();
+	model_cbValues.pointLightPos = m_lights->GetPointLightPos();
+	model_cbValues.pointLightRange = m_lights->GetPointLightRange();
+	
+	//Spot Light Values
+	model_cbValues.spotLightPos = m_lights->GetSpotLightPos();
+	model_cbValues.spotLightDir = m_lights->GetSpotLightDir();
+	model_cbValues.spotLightCol = m_lights->GetSpotLightCol();
+	model_cbValues.spotLightRange = m_lights->GetSpotLightRange();
+	model_cbValues.spotLightInnerCone = cos(m_lights->GetSpotLightInnerCone());
+	model_cbValues.spotLightOuterCone = cos(m_lights->GetSpotLightOuterCone());
+
+	
+
+	SHINYMODEL_CONSTANT_BUFFER s_cbValues;
+	s_cbValues.WorldView = (*world) * (*view);
 
 	DISSOLVE_CONSTANT_BUFFER d_cbValues;
 	d_cbValues.dissolveAmount = m_dissolveAmount;
@@ -293,11 +309,10 @@ void Model::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection)
 
 	if (m_type == ModelType::Shiny)
 	{
-		m_pImmediateContext->UpdateSubresource(m_pShinyBuffer, 0, 0, &sm_cbValue, 0,0);
+		m_pImmediateContext->UpdateSubresource(m_pShinyBuffer, 0, 0, &s_cbValues, 0, 0);
 		m_pImmediateContext->VSSetConstantBuffers(1, 1, &m_pShinyBuffer);
 		m_pImmediateContext->PSSetConstantBuffers(1, 1, &m_pShinyBuffer);
 	}
-
 	if (m_type == ModelType::Dissolve)
 	{
 		m_pImmediateContext->UpdateSubresource(m_pDissolveBuffer, 0, 0, &d_cbValues, 0, 0);

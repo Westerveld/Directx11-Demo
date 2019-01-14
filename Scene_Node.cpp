@@ -78,7 +78,7 @@ void Scene_Node::Execute(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, 
 
 	if (m_model)
 	{
-		m_model->Draw(&local_world, view, projection);
+		m_model->Draw(&local_world, view, projection, cam->GetPosition());
 	}
 	if (m_particle)
 	{
@@ -207,13 +207,27 @@ bool Scene_Node::CheckCollision(Scene_Node* compareTree, Scene_Node* objectTreeR
 			
 			min = maths::SubtractXYZ(&object1, &size);
 			max = maths::AddXYZ(&object1, &size);
+
+			float distToSphereSq = 0.0;
+			if (object2.x < min.x)
+				distToSphereSq += (min.x - object2.x) * (min.x - object2.x);
+			else if (object2.x > max.x)
+				distToSphereSq += (object2.x - max.x) * (object2.x - max.x);
+
+			if (object2.y < min.y)
+				distToSphereSq += (min.y - object2.y) * (min.y - object2.y);
+			else if (object2.y > max.y)
+				distToSphereSq += (object2.y - max.y) * (object2.y - max.y);
+
+			if (object2.z < min.z)
+				distToSphereSq += (min.z - object2.z) * (min.z - object2.z);
+			else if (object2.z > max.z)
+				distToSphereSq += (object2.z - max.z) * (object2.z - max.z);
 			
 			float radius = compareTree->m_model->GetBoundingSphereRadius() * compareTree->m_worldScale;
 			//Check the box against positions on the sphere
 
-			if ((object2.x + radius) > min.x && (object2.x - radius) < max.x &&
-				(object2.y + radius) > min.y &&	(object2.y - radius) < max.y &&
-				(object2.z + radius) > min.z &&	(object2.z - radius) < max.z)
+			if (distToSphereSq <= (radius * radius))
 			{
 				if (!m_isTrigger && !compareTree->GetIsTrigger())
 					return true;
@@ -231,10 +245,24 @@ bool Scene_Node::CheckCollision(Scene_Node* compareTree, Scene_Node* objectTreeR
 			min = maths::SubtractXYZ(&object2, &size);
 			max = maths::AddXYZ(&object2, &size);
 
+			float distToSphereSq = 0.0;
+			if (object1.x < min.x)
+				distToSphereSq += (min.x - object1.x) * (min.x - object1.x);
+			else if (object1.x > max.x)
+				distToSphereSq += (object1.x - max.x) * (object1.x - max.x);
+
+			if (object1.y < min.y)
+				distToSphereSq += (min.y - object1.y) * (min.y - object1.y);
+			else if (object1.y > max.y)
+				distToSphereSq += (object1.y - max.y) * (object1.y - max.y);
+
+			if (object1.z < min.z)
+				distToSphereSq += (min.z - object1.z) * (min.z - object1.z);
+			else if (object1.z > max.z)
+				distToSphereSq += (object1.z - max.z) * (object1.z - max.z);
+
 			float radius = m_model->GetBoundingSphereRadius() * m_worldScale;
-			if ((object1.x + radius) > min.x && (object1.x - radius) < max.x &&
-				(object1.y + radius) > min.y &&	(object1.y - radius) < max.y &&
-				(object1.z + radius) > min.z &&	(object1.z - radius) < max.z)
+			if ( distToSphereSq <= radius * radius)
 			{
 				if (!m_isTrigger && !compareTree->GetIsTrigger())
 					return true;
@@ -584,10 +612,10 @@ bool Scene_Node::CheckCollisionRay(float x, float y, float z, float rx, float ry
 				ray1 = maths::CalcPlanePoint(&tri, &rayStart);
 				ray2 = maths::CalcPlanePoint(&tri, &rayEnd);
 				//Set the floats using Sign to ensure they are either -1, 0 or 1
-				ray1 = maths::Sign(ray1);
-				ray2 = maths::Sign(ray2);
+				int ray1Result = maths::Sign(ray1);
+				int ray2Result = maths::Sign(ray2);
 				//If they are different values
-				if (ray1 != ray2)
+				if (ray1Result != ray2Result)
 				{
 					bool check1, check2;
 					//Check to see if the points are within the triangles

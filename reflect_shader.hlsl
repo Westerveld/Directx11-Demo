@@ -1,9 +1,22 @@
 cbuffer CB0
 {
 	matrix WVPMatrix;
+	float4 camPos;
 	float4 dirLightCol;
 	float4 dirLightPos;
 	float4 ambLightCol;
+
+
+	float4 pointLightPos;
+	float4 pointLightCol;
+	float pointLightRange;
+
+	float4 spotLightPos;
+	float4 spotLightDir;
+	float4 spotLightCol;
+	float spotLightRange;
+	float spotLightInnerCone;
+	float spotLightOuterCone;
 };
 
 cbuffer CBShiny
