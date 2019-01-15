@@ -1,7 +1,5 @@
 #include "Entity.h"
 
-
-
 Entity::Entity(Scene_Node* myNode)
 {
 	m_node = myNode;
@@ -9,31 +7,8 @@ Entity::Entity(Scene_Node* myNode)
 	SetDrag(0.0f, 0.0f, 0.0f);
 }
 
-
 Entity::~Entity()
 {
-}
-
-void Entity::Update(Scene_Node* rootNode, float delta)
-{
-		
-}
-
-void Entity::Jump(float jumpValue)
-{
-	if (m_node->CheckCollisionRay(m_position.x, m_position.y, m_position.z, 0.0f, -1.0f, 0.0f))
-	{
-		m_velocity.y = jumpValue;
-		m_touchingGround = false;
-	}
-	
-}
-
-void Entity::Move(float x, float z)
-{
-	m_position.x += x;
-	m_position.z += z;
-	UpdateNodePosition();
 }
 
 #pragma region Sets and updates

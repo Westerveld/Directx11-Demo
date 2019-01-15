@@ -34,4 +34,3 @@ public:
 	bool GetMouseButtonDown(unsigned char mouseKey);
 	float GetMouseScroll(void) { return (float)m_mouseStates.lZ; }
 };
-

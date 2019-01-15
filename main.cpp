@@ -1,5 +1,4 @@
 #include "main.h"
-
 //////////////////////////////////////////////////////////////////////////////////////
 //	Global Variables
 //////////////////////////////////////////////////////////////////////////////////////
@@ -141,7 +140,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (g_pGameManager->GetSwapChain())
 			{
 				g_pGameManager->GetImmediateContext()->OMSetRenderTargets(0, 0, 0);
-
+				//Release buffers
 				g_pGameManager->ReleaseRenderTarget();
 				g_pGameManager->ReleaseZBuffer();
 
@@ -154,7 +153,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				ID3D11Texture2D* pBuffer;
 				hr = g_pGameManager->GetSwapChain()->GetBuffer(0, _uuidof(ID3D11Texture2D), (void**)&pBuffer);
-
+				//create new render target
 				hr = g_pGameManager->GetDevice()->CreateRenderTargetView(pBuffer, NULL, &backBufferRTView);
 
 				pBuffer->Release();
@@ -179,7 +178,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				ZeroMemory(&dsvDesc, sizeof(dsvDesc));
 				dsvDesc.Format = tex2dDesc.Format;
 				dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-
+				//Create new z  buffer
 				g_pGameManager->GetDevice()->CreateDepthStencilView(pZBufferTexture, &dsvDesc, &zBuffer);
 				pZBufferTexture->Release();
 				g_pGameManager->SetZBuffer(zBuffer);
@@ -196,6 +195,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				vp.TopLeftX = 0;
 				vp.TopLeftY = 0;
 
+				//Update the game manager
 				g_pGameManager->GetImmediateContext()->RSSetViewports(1, &vp);
 				g_pGameManager->SetScreenHeight(HIWORD(lParam));
 				g_pGameManager->SetScreenWidth(LOWORD(lParam));
@@ -216,6 +216,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
+//Clean up the app
 void ShutdownD3D()
 {
 	if (g_pGameManager) delete g_pGameManager;

@@ -17,9 +17,7 @@ private:
 	ID3D11ShaderResourceView*		m_pTextureFloor;
 	ID3D11ShaderResourceView*		m_pTextureDissolve;
 
-
 	ID3D11SamplerState*				m_pSampler0;
-
 	ID3D11BlendState*				m_pTransparencyBlend;
 
 	LightManager*					m_pLights;
@@ -106,7 +104,4 @@ public:
 #pragma endregion
 
 	HRESULT					SetUpDirectX(void);
-	//HRESULT				ResizeWindow(LPARAM* lParam); Doesnt work in this class, got it working in main.cpp instead
-
 };
-

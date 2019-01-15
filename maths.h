@@ -30,5 +30,4 @@ public:
 	static xyz SubtractXYZ(xyz* v1, xyz* v2);
 	static bool CompareXYZ(xyz* v1, xyz* v2);
 	static xyz NormaliseXYZ(xyz* v1);
-	
 };

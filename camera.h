@@ -38,9 +38,9 @@ public:
 	void ChangeCameraPerspective(CameraPerspective newPers) { m_camPers = newPers; }
 	CameraPerspective GetCameraPerspective(void) { return m_camPers; }
 	//Return positions
-	float GetX(void) { return m_x; }
-	float GetY(void) { return m_y; }
-	float GetZ(void) { return m_z; }
+	float GetX(void) { return XMVectorGetX(m_position); }
+	float GetY(void) { return XMVectorGetY(m_position); }
+	float GetZ(void) { return XMVectorGetZ(m_position); }
 
 	//Return look at position
 	float GetdX(void) { return XMVectorGetX(m_target); }
@@ -62,4 +62,3 @@ public:
 	xyz GetTarget(void)		{ return maths::SetXYZ(XMVectorGetX(m_target), XMVectorGetY(m_target), XMVectorGetZ(m_target)); }
 
 };
-

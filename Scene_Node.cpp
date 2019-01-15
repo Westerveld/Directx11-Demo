@@ -1,6 +1,5 @@
 #include "Scene_Node.h"
 
-
 Scene_Node::Scene_Node(string name)
 {
 	m_model = NULL;
@@ -16,7 +15,6 @@ Scene_Node::Scene_Node(string name)
 	m_scale = 1.0f;
 	m_isTrigger = false;
 }
-
 
 Scene_Node::~Scene_Node()
 {
@@ -334,7 +332,6 @@ Scene_Node* Scene_Node::CheckCollisionSN(Scene_Node* compareTree, Scene_Node* ob
 				max1.y > min2.y && min1.y < max2.y &&
 				max1.z > min2.z && min1.z < max2.z)
 			{
-				std::cout << "Collided with " << compareTree->m_name;
 				return compareTree;
 			}
 		}
@@ -378,9 +375,7 @@ Scene_Node* Scene_Node::CheckCollisionSN(Scene_Node* compareTree, Scene_Node* ob
 			{
 				return compareTree;
 			}
-
 		}
-
 	}
 	for (size_t i = 0; i < compareTree->m_children.size(); i++)
 	{

@@ -7,12 +7,10 @@ private:
 	bool		m_pushed;
 	float		m_pushTimer;
 
-public:
-	
+public:	
 	Movable(Scene_Node* myNode);
 	~Movable();
 	void Update(Scene_Node* rootNode, float delta);
 	void Move(Scene_Node* rootNode, float delta);
 	bool CheckWallCollision(Scene_Node* rootNode, float delta);
 };
-

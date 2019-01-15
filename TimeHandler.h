@@ -26,4 +26,3 @@ public:
 	double GetDeltaTime() { return m_frameTime; }
 
 };
-

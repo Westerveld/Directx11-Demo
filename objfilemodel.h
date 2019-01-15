@@ -15,9 +15,6 @@ class ObjFileModel
 private:
 	ID3D11Device*           pD3DDevice;
 	ID3D11DeviceContext*    pImmediateContext;
-
-
-
 //////////////////////////////////////////////////
 
 	int loadfile(char* fname);
@@ -69,5 +66,3 @@ public:
 	MODEL_POS_TEX_NORM_VERTEX* vertices;
 	unsigned int numverts;
 };
-
-

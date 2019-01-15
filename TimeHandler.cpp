@@ -1,7 +1,5 @@
 #include "TimeHandler.h"
 
-
-
 TimeHandler::TimeHandler()
 {
 	m_countsPerSecond = 0.0;
@@ -10,7 +8,6 @@ TimeHandler::TimeHandler()
 	m_fps = 0;
 	m_frameTimeOld = 0;
 }
-
 
 TimeHandler::~TimeHandler()
 {
@@ -57,6 +54,6 @@ double TimeHandler::GetFrameTime()
 	tickCount = currentTime.QuadPart - m_frameTimeOld;
 	m_frameTimeOld = currentTime.QuadPart;
 	if (tickCount < 0.0f)
-		tickCount = 0.0f;
+		tickCount = 0;
 	return float(tickCount) / m_countsPerSecond;
 }

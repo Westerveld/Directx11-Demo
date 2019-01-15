@@ -23,4 +23,3 @@ public:
 	void MoveRight(float distance);
 	void Jump();
 };
-

@@ -14,9 +14,6 @@ public:
 	Entity(Scene_Node* myNode);
 	~Entity();
 
-	void Update(Scene_Node* rootNode, float delta);
-	void Jump(float jumpValue);
-	void Move(float x, float z);
 
 #pragma region Getter and Setters
 	xyz GetPosition(void) { return m_position; }
@@ -39,4 +36,3 @@ public:
 #pragma endregion
 	
 };
-

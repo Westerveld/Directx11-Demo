@@ -4,11 +4,8 @@
 #include "Movable.h"
 #include "MiniMap.h"
 
-
-
 D3D_DRIVER_TYPE         g_driverType = D3D_DRIVER_TYPE_NULL;
 D3D_FEATURE_LEVEL       g_featureLevel = D3D_FEATURE_LEVEL_11_0;
-
 
 GameManager::GameManager(float height, float width, HWND* hWnd, HINSTANCE* hInst)
 {
@@ -28,9 +25,9 @@ GameManager::GameManager(float height, float width, HWND* hWnd, HINSTANCE* hInst
 //Game Clean Up
 GameManager::~GameManager()
 {
+	if (m_pRootNode)			delete m_pRootNode;
 	if (m_pEnemy)				delete m_pEnemy;
 	if (m_pPlayer)				delete m_pPlayer;
-	if (m_pRootNode)			delete m_pRootNode;
 	if (m_pParticles)			delete m_pParticles;
 	if (m_pReflectModel)		delete m_pReflectModel;
 	if (m_pDissolveModel)		delete m_pDissolveModel;
@@ -62,6 +59,7 @@ HRESULT GameManager::InitialiseGraphics()
 {
 	HRESULT hr = S_OK;
 
+	//Create our sampler
 	D3D11_SAMPLER_DESC sampler_desc;
 	ZeroMemory(&sampler_desc, sizeof(sampler_desc));
 	sampler_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
@@ -79,6 +77,7 @@ HRESULT GameManager::InitialiseGraphics()
 		return hr;
 	}
 
+	//Set up all the textures for the models
 #pragma region Texture Setup
 	hr = D3DX11CreateShaderResourceViewFromFile(m_pD3DDevice,
 		"assets/marble1.png", NULL, NULL,
@@ -125,18 +124,20 @@ HRESULT GameManager::InitialiseGraphics()
 
 #pragma endregion
 
-
+	//Create the cameras for the game
 	m_pCam = new Camera(0.0, 0.0, -0.5, 0.0, 1.0f, 45.0f);
 	m_pCam->ChangeCameraType(CameraType::FirstPerson);
 	m_pUICam = new Camera(0.0, 0.0, -0.5, 0.0, 1.0f, 45.0f);
 	m_pUICam->ChangeCameraType(CameraType::TopDown);
 
+	//Create the text object
 	m_pText = new Text2D("assets/font2.bmp", m_pD3DDevice, m_pImmediateContext);
 
+	//Create the skybox
 	m_pSkyBox = new SkyBox(m_pD3DDevice, m_pImmediateContext);
 	m_pSkyBox->CreateSkybox(m_pTextureSkyBox);
 
-
+	//Set up all the models for the game
 #pragma region Cube Model Setup
 	m_pCubeModel = new Model(m_pD3DDevice, m_pImmediateContext, m_pLights);
 	hr = m_pCubeModel->LoadObjModel("assets/cube.obj");
@@ -311,11 +312,10 @@ HRESULT GameManager::InitialiseGraphics()
 
 void GameManager::LoadLevel (char* textFile)
 {
+	//Create our root nodes
 	m_pRootNode = new Scene_Node("Root");
 	m_pWallRoot = new Scene_Node("Walls_Root");
-	m_pFloor = new Scene_Node("Floor");
-	m_pFloor->SetModel(m_pPlaneModel);
-	m_pFloor->SetYPos(0.0f);
+
 
 	if (textFile == NULL)
 	{
@@ -334,7 +334,7 @@ void GameManager::LoadLevel (char* textFile)
 		}
 
 	}
-
+	//Cycle through the level array creating objects that correspond to the correct letters
 	for (size_t i = 0; i < m_pLevel.size(); i++)
 	{
 		std::string s = m_pLevel[i];
@@ -418,13 +418,13 @@ void GameManager::LoadLevel (char* textFile)
 				{
 					m_pParticles = new ParticleFactory(m_pD3DDevice, m_pImmediateContext, m_pLights);
 					m_pParticles->CreateParticle();
-					m_pParticles->SwitchParticleType(ParticleType::Explosion);
+					m_pParticles->SwitchParticleType(ParticleType::Fountain);
 					m_pParticles->SetActive(true);
 
 					m_pParticleNode = new Scene_Node("Particle");
 					m_pParticleNode->SetParticle(m_pParticles);
 					m_pParticleNode->SetXPos((float)j);
-					m_pParticleNode->SetYPos(2.0f);
+					m_pParticleNode->SetYPos(3.0f);
 					m_pParticleNode->SetZPos((float)i);
 				}
 				break;
@@ -466,6 +466,10 @@ void GameManager::LoadLevel (char* textFile)
 		}
 	}
 
+	//Create the floor node
+	m_pFloor = new Scene_Node("Floor");
+	m_pFloor->SetModel(m_pPlaneModel);
+	m_pFloor->SetYPos(0.0f);
 	m_pFloor->SetXPos(m_pLevel.size() * 0.5f);
 	m_pFloor->SetZPos(m_pLevel.size() * 0.5f);
 	
@@ -476,30 +480,27 @@ void GameManager::LoadLevel (char* textFile)
 	m_pRootNode->AddChildNode(m_pEnemyNode);
 	m_pRootNode->AddChildNode(m_pMovableNode);
 	m_pRootNode->AddChildNode(m_pDissolveNode);
-	//m_pRootNode->AddChildNode(m_pParticleNode);
 	m_pRootNode->AddChildNode(m_pReflectionNode);
 	m_pRootNode->AddChildNode(m_pKnightNode);
+	m_pRootNode->AddChildNode(m_pParticleNode);
 }
 
-
-//Returns the frame time
 void GameManager::Update()
 {
-	float deltaTime = m_pTimer->GetDeltaTime();
-	m_pPlayer->Update(deltaTime);
+	//Get the delta time to use for our functions
+	double deltaTime = m_pTimer->GetDeltaTime();
+	m_pPlayer->Update((float)deltaTime);
 	m_pCam->Update();
 	UpdateCameraNode();
 	m_pUICam->Update();
-	m_pEnemy->Update(m_pRootNode, deltaTime);
-	m_pMovable->Update(m_pRootNode, deltaTime);
-	//m_pDissolveNode->GetModel()->SetDissolveAmount(m_pDissolveNode->GetModel()->GetDissolveAmount() - 0.000005f);
-	
+	m_pEnemy->Update(m_pRootNode, (float)deltaTime);
+	m_pMovable->Update(m_pRootNode, (float)deltaTime);
 }
 
 void GameManager::Render()
 {
-	
 	UpdateText();
+
 	float clearCol[4] = { 0.0f,0.1f,0.1f,1.0f };
 	m_pImmediateContext->ClearRenderTargetView(m_pBackBufferRTView, clearCol);
 	m_pImmediateContext->ClearDepthStencilView(m_pZBuffer, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
@@ -535,39 +536,46 @@ void GameManager::Render()
 
 void GameManager::CheckInputs()
 {
-	float deltaTime = m_pTimer->GetDeltaTime();
+	//Get the deltat ime
+	float deltaTime = (float)m_pTimer->GetDeltaTime();
+	//Read the input from the input handler class
 	m_pInput->ReadInputStates();
-
 
 	if (m_pInput->IsKeyPressed(DIK_ESCAPE))
 	{
+		//Quit the game
 		DestroyWindow((*m_phWnd));
 	}
 	
 	//Third Person Movement
 	if (m_pCam->GetCameraType() == ThirdPerson || m_pCam->GetCameraType() == TopDown)
 	{
+		//Move forwards
 		if (m_pInput->IsKeyPressed(DIK_W))
 		{
 			m_pPlayer->MoveForward(deltaTime);
 
+			//Update our object position
 			XMMATRIX identity = XMMatrixIdentity();
-
 			m_pRootNode->UpdateCollisionTree(&identity, 1.0f);
 
+			//Check if we collided with anything
 			if (m_pPlayerNode->CheckCollision(m_pRootNode))
 			{
 				m_pPlayer->MoveForward(-deltaTime);
 			}
 		}
 
+		//Move backwards
 		if (m_pInput->IsKeyPressed(DIK_S))
 		{
 			m_pPlayer->MoveForward(-deltaTime);
-			XMMATRIX identity = XMMatrixIdentity();
 
+			//Update our object position
+			XMMATRIX identity = XMMatrixIdentity();
 			m_pRootNode->UpdateCollisionTree(&identity, 1.0f);
 
+			//Check if we collided with anything
 			if (m_pPlayerNode->CheckCollision(m_pRootNode))
 			{
 				m_pPlayer->MoveForward(deltaTime);
@@ -577,10 +585,12 @@ void GameManager::CheckInputs()
 		if (m_pInput->IsKeyPressed(DIK_A))
 		{
 			m_pPlayer->MoveRight(deltaTime);
-			XMMATRIX identity = XMMatrixIdentity();
 
+			//Update our object position
+			XMMATRIX identity = XMMatrixIdentity();
 			m_pRootNode->UpdateCollisionTree(&identity, 1.0f);
 
+			//Check if we collided with anything
 			if (m_pPlayerNode->CheckCollision(m_pRootNode))
 			{
 				m_pPlayer->MoveRight(-deltaTime);
@@ -590,14 +600,30 @@ void GameManager::CheckInputs()
 		if (m_pInput->IsKeyPressed(DIK_D))
 		{
 			m_pPlayer->MoveRight(-deltaTime);
-			XMMATRIX identity = XMMatrixIdentity();
 
+			//Update our object position
+			XMMATRIX identity = XMMatrixIdentity();
 			m_pRootNode->UpdateCollisionTree(&identity, 1.0f);
 
+			//Check if we collided with anything
 			if (m_pPlayerNode->CheckCollision(m_pRootNode))
 			{
 				m_pPlayer->MoveRight(deltaTime);
 			}
+		}
+		if (m_pInput->IsKeyPressed(DIK_SPACE))
+		{
+			m_pPlayer->Jump();
+		}
+
+		//Zooming in and out of the target
+		if (m_pInput->GetMouseScroll() > 0)
+		{
+			m_pCam->SetFollowDistance(m_pCam->GetFollowDistance() + .50f);
+		}
+		if (m_pInput->GetMouseScroll() < 0)
+		{
+			m_pCam->SetFollowDistance(m_pCam->GetFollowDistance() - .5f);
 		}
 	}
 	else
@@ -612,22 +638,31 @@ void GameManager::CheckInputs()
 		if (m_pInput->IsKeyPressed(DIK_S))
 		{
 			m_pCam->Forward(-camSpeed);
-
+			UpdateCameraNode();
 		}
 		if (m_pInput->IsKeyPressed(DIK_A))
 		{
 			m_pCam->Strafe(-camSpeed);
+			UpdateCameraNode();
 		}
 		if (m_pInput->IsKeyPressed(DIK_D))
 		{
 			m_pCam->Strafe(camSpeed);
+			UpdateCameraNode();
+		}
+		if (m_pInput->IsKeyPressed(DIK_Q))
+		{
+			m_pCam->Up(camSpeed);
+			UpdateCameraNode();
+		}
+		if (m_pInput->IsKeyPressed(DIK_E))
+		{
+			m_pCam->Up(-camSpeed);
+			UpdateCameraNode();
 		}
 	}
-	if (m_pInput->IsKeyPressed(DIK_SPACE))
-	{
-		m_pPlayer->Jump();
-	}
 
+	//Camera changer
 	if (m_pInput->IsKeyPressed(DIK_8))
 	{
 		m_pCam->ChangeCameraType(FirstPerson);
@@ -648,22 +683,18 @@ void GameManager::CheckInputs()
 		m_pCam->ChangeCameraType(TopDown);
 		UpdateCameraNode();
 	}
-
-	if (m_pInput->GetMouseButtonDown(1))
+	//Change particle type
+	if (m_pInput->IsKeyPressed(DIK_P))
 	{
-		m_enableAlpha = !m_enableAlpha;
+		m_pParticles->SwitchParticleType(ParticleType::Explosion);
+	}
+	if (m_pInput->IsKeyPressed(DIK_O))
+	{
+		m_pParticles->SwitchParticleType(ParticleType::Fountain);
 	}
 
-	if (m_pInput->GetMouseScroll() > 0)
-	{
-		m_pCam->SetFollowDistance(m_pCam->GetFollowDistance() + .50f);
-	}
-	if (m_pInput->GetMouseScroll() < 0)
-	{
-		m_pCam->SetFollowDistance(m_pCam->GetFollowDistance() - .5f);
-	}
-	 
-	m_pCam->RotateCamera(m_pInput->GetMouseX() * 0.1f, m_pInput->GetMouseY() * 0.1f);
+	float mouseSensitivity = 0.1f; 
+	m_pCam->RotateCamera(m_pInput->GetMouseX() * mouseSensitivity, m_pInput->GetMouseY() * mouseSensitivity);
 }
 
 void GameManager::UpdateCameraNode()
@@ -673,76 +704,7 @@ void GameManager::UpdateCameraNode()
 	m_pCameraNode->SetZPos(m_pCam->GetZ());
 }
 
-
-/* This doesnt seem to work at the momenet, have resulted in doing it in main.cpp
-HRESULT GameManager::ResizeWindow(LPARAM* lParam)
-{
-	HRESULT hr;
-
-	m_pImmediateContext->OMSetRenderTargets(0, 0, 0);
-
-	//Release all oustanding references to the swap chains buffers
-	m_pBackBufferRTView->Release();
-	m_pZBuffer->Release();
-
-	
-
-	//Preserve the existing buffer count and format.
-	//Automatically chose the width and height to match the client rect
-	hr = m_pSwapChain->ResizeBuffers(0, LOWORD(lParam), HIWORD(lParam), DXGI_FORMAT_UNKNOWN, 0);
-
-	//Get buffer and new render-target-view
-	ID3D11Texture2D* pBuffer;
-	
-	hr = m_pSwapChain->GetBuffer(0, _uuidof(ID3D11Texture2D), (void**)&pBuffer);
-
-	hr = m_pD3DDevice->CreateRenderTargetView(pBuffer, NULL, &m_pBackBufferRTView);
-
-	pBuffer->Release();
-
-	//Create Z buffer texture;
-	D3D11_TEXTURE2D_DESC tex2dDesc;
-	ZeroMemory(&tex2dDesc, sizeof(tex2dDesc));
-	tex2dDesc.Width = LOWORD(lParam);
-	tex2dDesc.Height = HIWORD(lParam);
-	tex2dDesc.ArraySize = 1;
-	tex2dDesc.MipLevels = 1;
-	tex2dDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	tex2dDesc.SampleDesc.Count = 1;
-	tex2dDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	tex2dDesc.Usage = D3D11_USAGE_DEFAULT;
-
-	ID3D11Texture2D *pZBufferTexture;
-	hr = m_pD3DDevice->CreateTexture2D(&tex2dDesc, NULL, &pZBufferTexture);
-	if (FAILED(hr)) return hr;
-
-	// create the z buffer
-	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
-	ZeroMemory(&dsvDesc, sizeof(dsvDesc));
-	dsvDesc.Format = tex2dDesc.Format;
-	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-
-	m_pD3DDevice->CreateDepthStencilView(pZBufferTexture, &dsvDesc, &m_pZBuffer);
-	pZBufferTexture->Release();
-
-
-	m_pImmediateContext->OMSetRenderTargets(1, &m_pBackBufferRTView, m_pZBuffer);
-
-
-	//Set up viewport
-	D3D11_VIEWPORT vp;
-	vp.Width = LOWORD(lParam);
-	vp.Height = HIWORD(lParam);
-	vp.MinDepth = 0.0f;
-	vp.MaxDepth = 1.0f;
-	vp.TopLeftX = 0;
-	vp.TopLeftY = 0;
-
-	m_pImmediateContext->RSSetViewports(1, &vp);
-
-}
-*/
-
+//Set up our direct x objects
 HRESULT GameManager::SetUpDirectX()
 {
 	HRESULT hr = S_OK;
@@ -857,11 +819,9 @@ HRESULT GameManager::SetUpDirectX()
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
 
-
 	m_pImmediateContext->RSSetViewports(1, &viewport);
 
-
-	//Define beldning
+	//Define blending
 	D3D11_BLEND_DESC blendDesc;
 	ZeroMemory(&blendDesc, sizeof(blendDesc));
 
@@ -881,21 +841,20 @@ HRESULT GameManager::SetUpDirectX()
 
 	m_pD3DDevice->CreateBlendState(&blendDesc, &m_pTransparencyBlend);
 
-
 	return S_OK;
-
 }
 
+//Update the text to display
 void GameManager::UpdateText()
 {
 	string fps = "Fps ";
 	fps += std::to_string(m_pTimer->GetFPS());
-	m_pText->AddText(fps, -1, 1, .07);
+	m_pText->AddText(fps, -1.0f, 1.0f, .07f);
 
 	string info = "WASD to Move";
-	m_pText->AddText(info, -1, -0.9, .07);
+	m_pText->AddText(info, -1.0f, -0.9f, .07f);
 
 	string camType;
 	camType += m_pCam->GetCameraTypeString();
-	m_pText->AddText(camType, 0.0, -0.9, 0.07);
+	m_pText->AddText(camType, 0.0f, -0.9f, 0.07f);
 }

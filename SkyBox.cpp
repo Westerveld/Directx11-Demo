@@ -1,13 +1,10 @@
 #include "SkyBox.h"
 
-
-
 SkyBox::SkyBox(ID3D11Device* device, ID3D11DeviceContext* context)
 {
 	m_pD3DDevice = device;
 	m_pImmediateContext = context;
 }
-
 
 SkyBox::~SkyBox()
 {
@@ -136,8 +133,6 @@ HRESULT SkyBox::CreateSkybox(ID3D11ShaderResourceView* texture)
 	if (FAILED(hr))
 		return hr;
 
-
-
 	//Copy the vertices into the buffer
 	D3D11_MAPPED_SUBRESOURCE ms;
 
@@ -149,7 +144,6 @@ HRESULT SkyBox::CreateSkybox(ID3D11ShaderResourceView* texture)
 
 	//Unlock the buffer
 	m_pImmediateContext->Unmap(m_pVertexBuffer, NULL);
-
 
 	ID3DBlob *VS, *PS, *error;
 	hr = D3DX11CompileFromFile("skybox_shader.hlsl", 0, 0, "SkyboxVS", "vs_4_0", 0, 0, 0, &VS, &error, 0);
@@ -218,10 +212,7 @@ HRESULT SkyBox::CreateSkybox(ID3D11ShaderResourceView* texture)
 		return hr;
 
 	return S_OK;
-
 }
-
-
 
 void SkyBox::RenderSkyBox(XMMATRIX* view, XMMATRIX* projection, Camera* cam)
 {
@@ -260,5 +251,4 @@ void SkyBox::RenderSkyBox(XMMATRIX* view, XMMATRIX* projection, Camera* cam)
 
 	m_pImmediateContext->OMSetDepthStencilState(m_pDepthWriteSolid, 0);
 	m_pImmediateContext->RSSetState(m_pRasterSolid);
-	
 }

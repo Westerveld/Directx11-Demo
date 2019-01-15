@@ -120,4 +120,3 @@ public:
 	//Used for shiny model
 	void SetSkyboxTexture(ID3D11ShaderResourceView* skybox)				{ m_pSkyboxTexture = skybox; }
 };
-

@@ -19,4 +19,3 @@ public:
 	void AddWaypoint(float x, float y, float z);
 
 };
-

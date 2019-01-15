@@ -36,4 +36,3 @@ public:
 	void AddToMap(Scene_Node* rootNode, ID3D11DeviceContext* context, ID3D11DepthStencilView*	zBuffer);
 	void RenderMap(ID3D11DeviceContext* context, ID3D11DepthStencilView*	zBuffer);
 };
-

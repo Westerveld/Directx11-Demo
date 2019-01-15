@@ -275,7 +275,6 @@ bool ObjFileModel::createVB()
 	return true;
 }
 
-
 ObjFileModel::~ObjFileModel()
 {
 	// clean up memory used by object

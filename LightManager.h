@@ -81,4 +81,3 @@ public:
 	void SetSpotLightInnerCone(float newCone) { m_spotLightInnerCone = newCone; }
 #pragma endregion
 };
-

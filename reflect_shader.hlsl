@@ -43,7 +43,6 @@ VOut ModelVS(float4 position : POSITION, float3 texcoord : TEXCOORD, float3 norm
 	
 	output.position = mul(WVPMatrix, position);
 	output.normal = normal;
-	//output.normal = normalize(output.normal);
 
 	output.color = float4(1, 1, 1, 1);
 	output.texcoordNorm = texcoord;
@@ -61,5 +60,6 @@ VOut ModelVS(float4 position : POSITION, float3 texcoord : TEXCOORD, float3 norm
 
 float4 ModelPS(in VOut input) : SV_TARGET
 {
-	return skyboxTexture.Sample(sampler0, input.texcoord) * texture0.Sample(sampler0, input.texcoordNorm) ;
+	float4 col = skyboxTexture.Sample(sampler0, input.texcoord) * texture0.Sample(sampler0, input.texcoordNorm);
+	return col;
 }

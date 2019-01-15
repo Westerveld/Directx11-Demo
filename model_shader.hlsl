@@ -59,7 +59,7 @@ float3 CalcAmbLight(float3 normal, float3 color)
 {
 	//Convert from -1, 1 to 0, 1
 	float3 AmbientDown = ambLightCol.rgb;
-	float3 AmbientUp = (0.2f, 0.2f, 0.2f);
+	float3 AmbientUp = float3(0.2f, 0.2f, 0.2f);
 	float up = normal.y * 0.5 + 0.5;
 	float3 ambient = AmbientDown + up * AmbientUp;
 
@@ -102,7 +102,7 @@ float3 CalcPointLight(float3 position, Material mat)
 	float DistToLightNorm = 1.0 - saturate(DistToLight * pointLightRange);
 	float Attn = DistToLightNorm * DistToLightNorm;
 
-	finalColor *= mat.diffuseColor * Attn;
+	finalColor *= mat.diffuseColor.rgb * Attn;
 
 	return finalColor;
 }
@@ -132,7 +132,7 @@ float3 CalcSpotLight(float3 position, Material mat)
 	//Attenuation
 	float DistToLightNorm = 1.0 - saturate(DistToLight * spotLightRange);
 	float Attn = DistToLightNorm * DistToLightNorm;
-	finalColor *= mat.diffuseColor * Attn * coneAtt;
+	finalColor *= mat.diffuseColor.rgb * Attn * coneAtt;
 
 	return finalColor;
 

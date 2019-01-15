@@ -1,14 +1,11 @@
 #include "Player.h"
 
-
-
 Player::Player(Scene_Node* myNode, Camera* cam, float speed, float defaultY) : Entity(myNode)
 {
 	m_Cam = cam;
 	m_speed = speed;
 	m_groundY = defaultY;
 }
-
 
 Player::~Player()
 {
@@ -40,9 +37,7 @@ void Player::Update(float delta)
 			m_jumping = false;
 		}
 	}
-
 	UpdateNodePosition();
-	
 }
 
 void Player::MoveForward(float distance)
@@ -56,7 +51,6 @@ void Player::MoveRight(float distance)
 {
 	m_position.x += (m_right.x * (distance * m_speed));
 	m_position.z += (m_right.z * (distance * m_speed));
-
 	UpdateNodePosition();
 }
 
@@ -78,7 +72,6 @@ void Player::CalculateForwardVector()
 
 void Player::CalculateRightVector()
 {
-	
 	xyz camRight = m_Cam->GetRight();
 	camRight.y = m_position.y;
 	m_right = maths::SetXYZ(&camRight);

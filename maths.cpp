@@ -1,7 +1,5 @@
 #include "maths.h"
 
-
-
 maths::maths()
 {
 }
@@ -11,6 +9,7 @@ maths::~maths()
 {
 }
 
+//Calculate the squared magnitude
 float maths::MagnitudeSqr(xyz* v1)
 {
 	float result = ((*v1).x * (*v1).x) + ((*v1).y * (*v1).y) + ((*v1).z * (*v1).z);
@@ -99,9 +98,9 @@ xyz maths::PlaneIntersection(Plane* p, xyz* v1, xyz* v2)
 
 	if (t < 0.0 || t > 1.0)
 	{
-		inter.x = 9999999999999;
-		inter.y = 9999999999999;
-		inter.z = 9999999999999;
+		inter.x = 9999999999999.0f;
+		inter.y = 9999999999999.0f;
+		inter.z = 9999999999999.0f;
 	}
 	else 
 	{

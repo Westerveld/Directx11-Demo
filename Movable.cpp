@@ -1,7 +1,5 @@
 #include "Movable.h"
 
-
-
 Movable::Movable(Scene_Node* myNode) : Entity(myNode)
 {
 }
@@ -10,7 +8,6 @@ Movable::Movable(Scene_Node* myNode) : Entity(myNode)
 Movable::~Movable()
 {
 }
-
 
 void Movable::Update(Scene_Node* rootNode, float delta)
 {
@@ -57,14 +54,7 @@ void Movable::Move(Scene_Node* rootNode, float delta)
 
 			m_pushed = true;
 			m_pushTimer = 0.0f;
-			/*if (m_node->CheckCollision(rootNode))
-			{
-				m_position.x -= dir.x * delta;
-				m_position.z -= dir.z * delta;
-				UpdateNodePosition();
-			}*/
 		}
-		
 	}
 }
 

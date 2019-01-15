@@ -1,7 +1,5 @@
 #include "LightManager.h"
 
-
-
 LightManager::LightManager()
 {
 	m_dirLightCol = XMVectorSet(0.75f, 0.75f, 0.95f, 0.0f);
@@ -20,8 +18,6 @@ LightManager::LightManager()
 	m_spotLightRange = 60.0f;
 	m_spotLightInnerCone = 3.0f;
 	m_spotLightOuterCone = 20.0f;
-
-
 }
 
 

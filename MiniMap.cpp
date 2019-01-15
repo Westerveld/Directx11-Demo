@@ -1,10 +1,7 @@
 #include "MiniMap.h"
 
-
-
 MiniMap::MiniMap(float height, float width)
 {
-
 	m_screenHeight = height;
 	m_screenWidth = width;
 }
@@ -57,8 +54,8 @@ HRESULT MiniMap::SetUpMiniMap(ID3D11Device* device, ID3D11DeviceContext* context
 	ZeroMemory(&textureDesc, sizeof(textureDesc));
 
 	//Map will be a small square in the top right o fthe screen, we will use an eigth of the screen for it
-	textureDesc.Width = m_screenWidth / 4;
-	textureDesc.Height = m_screenHeight / 4;
+	textureDesc.Width = (UINT)(m_screenWidth / 4);
+	textureDesc.Height = (UINT)(m_screenHeight / 4);
 	textureDesc.MipLevels = 1;
 	textureDesc.ArraySize = 1;
 	textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;

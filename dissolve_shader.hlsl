@@ -24,7 +24,6 @@ cbuffer CB_dissolve
 	float specIntensity;
 	float specExp;
 	float fill;
-	//float4 borderColor;
 };
 
 Texture2D texture0;

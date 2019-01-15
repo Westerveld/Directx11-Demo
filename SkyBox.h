@@ -51,4 +51,3 @@ public:
 	void RenderSkyBox(XMMATRIX* view, XMMATRIX* projection, Camera* cam);
 
 };
-

@@ -4,7 +4,6 @@
 #include <deque>
 #include <time.h>
 
-
 struct PARTICLE_CONSTANT_BUFFER
 {
 	XMMATRIX WorldViewProjection; //64 bytes
@@ -40,6 +39,7 @@ private:
 
 	ID3D11RasterizerState*		m_pRasterSolid;
 	ID3D11RasterizerState*		m_pRasterParticle;
+	ID3D11BlendState*			m_pTransparencyBlend;
 
 	LightManager*				m_lights;
 
@@ -92,4 +92,3 @@ public:
 	void SwitchParticleType(ParticleType newType);
 	
 };
-

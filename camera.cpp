@@ -95,6 +95,7 @@ void Camera::Forward(float distance)
 		//Handled in player class
 		break;
 	case TopDown:
+		//Handled in player class
 		break;
 	}
 }
@@ -116,6 +117,7 @@ void Camera::Up(float distance)
 		//Handled in player class
 		break;
 	case TopDown:
+		//Handled in player class
 		break;
 	}
 }
@@ -138,6 +140,7 @@ void Camera::Strafe(float distance)
 		//Handled in player class
 		break;
 	case TopDown:
+		//Handled in player class
 		break;
 	}
 }
@@ -147,6 +150,7 @@ XMMATRIX Camera::GetViewMatrix()
 {
 	if (m_camType == TopDown)
 		return XMMatrixLookAtLH(m_position, m_target, m_forward);
+
 	return XMMatrixLookAtLH(m_position, m_target, m_up);
 }
 
@@ -230,18 +234,25 @@ void Camera::Update()
 		break;
 	case TopDown:
 		{
+			//Get our target
 			m_target = XMVectorSet(m_followTarget->GetXPos(), m_followTarget->GetYPos(), m_followTarget->GetZPos(), 0);
-			
+			//No rotations for top down
 			m_rotationMatrix = XMMatrixRotationY(0);
+			
 			m_position = XMVector3TransformNormal(m_dForward, m_rotationMatrix);
 			m_position = XMVector3Normalize(m_position);
+			//Set our position
 			m_position = XMVectorSet(XMVectorGetX(m_target), XMVectorGetY(m_target) + m_followDistance, XMVectorGetZ(m_target), 0);
+			//Update the local variables
 			m_x = XMVectorGetX(m_position);
 			m_y = XMVectorGetY(m_position);
 			m_z = XMVectorGetZ(m_position);
 
+			//Default forward vector
 			m_forward = m_dForward;
+			//Default right vector
 			m_up = m_dUp;
+			//SEt up the right vector
 			m_right = XMVectorSet(-XMVectorGetZ(m_forward), 0.0f, XMVectorGetX(m_forward), 0.0f);
 		}
 		break;
@@ -255,6 +266,7 @@ void Camera::SetPosition(float x, float y, float z)
 	m_z = z;
 }
 
+//Used for text display to UI
 string Camera::GetCameraTypeString()
 {
 	string s;

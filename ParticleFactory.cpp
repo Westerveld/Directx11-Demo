@@ -12,27 +12,26 @@ ParticleFactory::ParticleFactory(ID3D11Device* device, ID3D11DeviceContext* devi
 	m_xAngle = 0.0f;
 	m_yAngle = 0.0f;
 	m_zAngle = 0.0f;
-	srand(time(NULL));
+	srand((unsigned int)time(NULL));
 	m_scale = 1.0f;
 	m_defScale = m_scale;
 
-	for (int i = 0; i < 100; i++)
+	for (int i = 0; i < 1000; i++)
 	{
 		m_free.push_back(new Particle);
 	}
 }
 
-
 ParticleFactory::~ParticleFactory()
 {
-	
-	for (int i = 0; i < m_free.size(); i++)
+	//Clear out the deques
+	for (size_t i = 0; i < m_free.size(); i++)
 	{
 		delete m_free[i];
 		m_free[i] = nullptr;
 		m_free.pop_front();
 	}
-	for (int i = 0; i < m_active.size(); i++)
+	for (size_t i = 0; i < m_active.size(); i++)
 	{
 		delete m_active[i];
 		m_active[i] = nullptr;
@@ -105,6 +104,26 @@ int ParticleFactory::CreateParticle()
 	constantBufferDesc.ByteWidth = 80;
 	constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	hr = m_pD3DDevice->CreateBuffer(&constantBufferDesc, NULL, &m_pConstantBuffer);
+
+	//Transparency set up
+	D3D11_BLEND_DESC blendDesc;
+	ZeroMemory(&blendDesc, sizeof(blendDesc));
+
+	D3D11_RENDER_TARGET_BLEND_DESC renderBlend;
+
+	renderBlend.BlendEnable = true;
+	renderBlend.SrcBlend = D3D11_BLEND_SRC_COLOR;
+	renderBlend.DestBlend = D3D11_BLEND_INV_SRC_COLOR;
+	renderBlend.BlendOp = D3D11_BLEND_OP_ADD;
+	renderBlend.SrcBlendAlpha = D3D11_BLEND_ONE;
+	renderBlend.DestBlendAlpha = D3D11_BLEND_ZERO;
+	renderBlend.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	renderBlend.RenderTargetWriteMask = D3D10_COLOR_WRITE_ENABLE_ALL;
+
+	blendDesc.AlphaToCoverageEnable = false;
+	blendDesc.RenderTarget[0] = renderBlend;
+
+	m_pD3DDevice->CreateBlendState(&blendDesc, &m_pTransparencyBlend);
 
 	LoadDefaultShaders();
 
@@ -227,7 +246,6 @@ HRESULT ParticleFactory::LoadDefaultShaders()
 	return S_OK;
 }
 
-//Doesn't work yet
 HRESULT ParticleFactory::LoadCustomShader(char* fileName, char* vertexShaderFunction, char* pixelShaderFunction)
 {
 	HRESULT hr = S_OK;
@@ -324,7 +342,7 @@ void ParticleFactory::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection
 					m_age = 2.0f;
 					(*itr)->color = XMFLOAT4(RandomZeroToOne(), RandomZeroToOne(), RandomZeroToOne(), 1.0f);
 					(*itr)->gravity = 4.5f;
-					(*itr)->position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+					(*itr)->position = XMFLOAT3(world->_41, world->_42, world->_43);
 					(*itr)->velocity = XMFLOAT3(RandomNegOneToPosOne(), 2.5f, RandomNegOneToPosOne());
 					(*itr)->scale = 0.3f;
 					break;
@@ -334,7 +352,7 @@ void ParticleFactory::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection
 					m_age = 3.0f;
 					(*itr)->color = XMFLOAT4(1.0f, RandomZeroToOne(), RandomZeroToOne(), 1.0f);
 					(*itr)->gravity = 0.5f;
-					(*itr)->position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+					(*itr)->position = XMFLOAT3(world->_41, world->_42, world->_43);
 					(*itr)->velocity = XMFLOAT3(RandomNegOneToPosOne() * 5.0f, RandomNegOneToPosOne() * 5.0f, RandomNegOneToPosOne() * 5.0f);
 					(*itr)->scale = 0.4f;
 					break;
@@ -362,6 +380,7 @@ void ParticleFactory::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection
 
 		while (itr != m_active.end())
 		{
+			//Update the active particles position, scale, age and velocity
 			switch (m_type)
 			{
 			case Fountain:
@@ -393,29 +412,32 @@ void ParticleFactory::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection
 
 			local = XMMatrixIdentity();
 
+			//Set the local matrix for the particles to be rendered with
 			switch (m_type)
 			{
 			case Fountain:
-				local = *world;
+				local *= *world;
 				local *= XMMatrixScaling((*itr)->scale, (*itr)->scale, (*itr)->scale);
 				local *= XMMatrixRotationY(XMConvertToRadians(LookAt_XZ((*itr), cameraPosition.x, cameraPosition.z)));
 				local *= XMMatrixTranslation((*itr)->position.x, (*itr)->position.y, (*itr)->position.z);
 				break;
-				
 			case Explosion:
-				local = *world;
+				local *= *world;
 				local *= XMMatrixScaling((*itr)->scale, (*itr)->scale, (*itr)->scale);
 				local *= XMMatrixRotationY(XMConvertToRadians(LookAt_XZ((*itr), cameraPosition.x, cameraPosition.z)));
 				local *= XMMatrixTranslation((*itr)->position.x, (*itr)->position.y, (*itr)->position.z);
 				break;
-
 			default:
 				break;
 			}
 
+			//Update the constant buffer
 			PARTICLE_CONSTANT_BUFFER particle_cbValues;
 			particle_cbValues.WorldViewProjection = local * (*view) * (*projection);
 			particle_cbValues.color = (*itr)->color;
+
+			//Enable transparency 
+			m_pImmediateContext->OMSetBlendState(m_pTransparencyBlend, 0, 0xffffffff);
 
 			//Set input layout and shaders active
 			m_pImmediateContext->VSSetShader(m_pVShader, 0, 0);
@@ -431,11 +453,15 @@ void ParticleFactory::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection
 			m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 			m_pImmediateContext->PSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 
-			//m_pImmediateContext->RSSetState(m_pRasterParticle);
+			m_pImmediateContext->RSSetState(m_pRasterParticle);
 
-			m_pImmediateContext->RSSetState(m_pRasterSolid); 
 			m_pImmediateContext->Draw(6, 0);
+			
+			m_pImmediateContext->RSSetState(m_pRasterSolid);
+			//Reset trasparency
+			m_pImmediateContext->OMSetBlendState(0, 0, 0xffffffff);
 
+			//Clear old particles
 			if ((*itr)->age >= m_age)
 			{
 				itr++;
@@ -494,7 +520,7 @@ float ParticleFactory::LookAt_XZ(Particle* particle, float x, float z)
 	dx = x - particle->position.x;
 	dz = z - particle->position.z;
 	//m_yAngle = atan2(dx, dz) * (180.0 / XM_PI);
-	float value = atan2(dx, dz);
+	float value = atan2(dx, dz) * (180.0 / XM_PI);
 	return value;
 }
 
@@ -512,7 +538,7 @@ XMVECTOR ParticleFactory::LookAt_XYZ(Particle* particle, float x, float y, float
 	return angles;
 }
 
-
+//Changes the particle type and clears the active list
 void ParticleFactory::SwitchParticleType(ParticleType newType)
 {
 	if (newType != m_type)
@@ -536,4 +562,3 @@ void ParticleFactory::SwitchParticleType(ParticleType newType)
 	}
 
 }
-

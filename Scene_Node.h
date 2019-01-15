@@ -3,8 +3,6 @@
 #include "maths.h"
 #include "ParticleFactory.h"
 #include "Camera.h"
-#include <iostream>
-
 
 class Scene_Node
 {

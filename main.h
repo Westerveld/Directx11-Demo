@@ -32,5 +32,3 @@ struct POS_COL_TEX_NORM_VERTEX //This will be added to and renamed in future tut
 	XMFLOAT2 Texture0;
 	XMFLOAT3 Normal;
 };
-
-

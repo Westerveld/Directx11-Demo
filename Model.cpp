@@ -6,11 +6,9 @@ Model::Model(ID3D11Device* device, ID3D11DeviceContext* deviceContext, LightMana
 	m_pD3DDevice = device;
 	m_lights = lights;
 
-
 	m_pTexture = NULL;
 	m_pSampler = NULL;
 }
-
 
 Model::~Model()
 {
@@ -102,8 +100,6 @@ HRESULT Model::LoadObjModel(char* filename)
 
 	hr = m_pD3DDevice->CreateSamplerState(&sampler_desc, &m_pAlphaSampler);
 
-	///CalculateModelCentrePoint();
-	//CalculateBoudingSphereRadius();
 
 	return S_OK;
 }
@@ -253,6 +249,7 @@ void Model::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, xyz camP
 			return;
 	}
 
+	//Set transparency
 	if (m_type == ModelType::Dissolve)
 		m_pImmediateContext->OMSetBlendState(m_pTransparencyBlend, 0, 0xffffffff);
 	else
@@ -297,7 +294,6 @@ void Model::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, xyz camP
 	d_cbValues.dissolveAmount = m_dissolveAmount;
 	d_cbValues.specExp = 0.5f;
 	d_cbValues.specularIntensity = m_dissolveAmount;
-	//d_cbValues.dissolveColor = m_dissolveColor;
 
 	
 	//Upload new values to buffer
@@ -306,13 +302,14 @@ void Model::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, xyz camP
 	//Set the constant buffer active
 	m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 	m_pImmediateContext->PSSetConstantBuffers(0, 1, &m_pConstantBuffer);
-
+	//Update the shiny buffer
 	if (m_type == ModelType::Shiny)
 	{
 		m_pImmediateContext->UpdateSubresource(m_pShinyBuffer, 0, 0, &s_cbValues, 0, 0);
 		m_pImmediateContext->VSSetConstantBuffers(1, 1, &m_pShinyBuffer);
 		m_pImmediateContext->PSSetConstantBuffers(1, 1, &m_pShinyBuffer);
 	}
+	//Update the dissolve buffer
 	if (m_type == ModelType::Dissolve)
 	{
 		m_pImmediateContext->UpdateSubresource(m_pDissolveBuffer, 0, 0, &d_cbValues, 0, 0);
@@ -320,29 +317,28 @@ void Model::Draw(XMMATRIX* world, XMMATRIX* view, XMMATRIX* projection, xyz camP
 		m_pImmediateContext->PSSetConstantBuffers(1, 1, &m_pDissolveBuffer);
 	}
 
+	//Set default texture and sampler
 	if (m_pSampler && m_pTexture)
 	{
-		//Set texture
 		m_pImmediateContext->PSSetSamplers(0, 1, &m_pSampler);
 		m_pImmediateContext->PSSetShaderResources(0, 1, &m_pTexture);
 	}
-
+	//Set the skybox texture to the shader
 	if (m_pSkyboxTexture)
 	{
 		m_pImmediateContext->PSSetShaderResources(1, 1, &m_pSkyboxTexture);
 	}
-
+	//Set the dissolve texture to the sampler
 	if (m_pDissolveTexture)
 	{
 		m_pImmediateContext->PSSetShaderResources(1, 1, &m_pDissolveTexture);
-
+		//Add the second sampler to the shader
 		if (m_pAlphaSampler)
 			m_pImmediateContext->PSSetSamplers(1, 1, &m_pAlphaSampler);
 	}
 
 	m_pObject->Draw();
 }
-
 
 #pragma region Sphere Collision Detection
 void Model::CalculateModelCentrePoint()
@@ -416,13 +412,13 @@ void Model::CalculateBoundingBox()
 			maxZ = m_pObject->vertices[i].Pos.z;
 	}
 
-	m_boundingBoxCentre.x = (minX + maxX) * 0.5;
-	m_boundingBoxCentre.y = (minY + maxY) * 0.5;
-	m_boundingBoxCentre.z = (minZ + maxZ) * 0.5;
+	m_boundingBoxCentre.x = (minX + maxX) * 0.5f;
+	m_boundingBoxCentre.y = (minY + maxY) * 0.5f;
+	m_boundingBoxCentre.z = (minZ + maxZ) * 0.5f;
 
-	m_boundingBoxSize.x = (maxX - minX) * 0.5;
-	m_boundingBoxSize.y = (maxY - minY) * 0.5;
-	m_boundingBoxSize.z = (maxZ - minZ) * 0.5;
+	m_boundingBoxSize.x = (maxX - minX) * 0.5f;
+	m_boundingBoxSize.y = (maxY - minY) * 0.5f;
+	m_boundingBoxSize.z = (maxZ - minZ) * 0.5f;
 }
 #pragma endregion
 

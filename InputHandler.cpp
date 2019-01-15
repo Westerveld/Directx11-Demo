@@ -1,7 +1,5 @@
 #include "InputHandler.h"
 
-
-
 InputHandler::InputHandler(HWND* hWnd, HINSTANCE* hInstance)
 {
 	m_hInstance = hInstance;
@@ -9,7 +7,6 @@ InputHandler::InputHandler(HWND* hWnd, HINSTANCE* hInstance)
 	m_controllerConnected = false;
 	m_controllerNum = 0;
 }
-
 
 //Clean up
 InputHandler::~InputHandler()
@@ -92,7 +89,6 @@ void InputHandler::ReadInputStates()
 			m_mouseDevice->Acquire();
 		}
 	}
-
 }
 
 //bool returns whether the inputted key is press
