@@ -508,10 +508,7 @@ XMVECTOR ParticleFactory::LookAt_XYZ(Particle* particle, float x, float y, float
 	/*m_xAngle = -atan2(dy, dx - dz) * (180.0 / XM_PI);
 	m_yAngle = atan2(dx, dz) * (180.0 / XM_PI);*/
 
-	angles.z = 0;
-	angles.x = -atan2(dy, dx - dz);
-	angles.y = atan2(dx, dz);
-
+	angles = XMVectorSet(-atan2(dy, dx - dz), atan2(dx, dz), 0.0f, 0.0f);
 	return angles;
 }
 
