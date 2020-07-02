@@ -14,3 +14,4 @@ I ended up creating a demo that has:
 - Directional Lighting
 - Point Lights
 - Spot Lights
+- Resizable Window
