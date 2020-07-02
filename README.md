@@ -4,6 +4,7 @@ This project was created as part of a university assignment to make a game in Di
 I ended up creating a demo that has:
 - 3rd Person Camera
 - Flythrough Camera
+- Top Down Camera
 - Simple AI with waypoint movement
 - Collision detection
 - Simple Particle Effects
@@ -14,4 +15,6 @@ I ended up creating a demo that has:
 - Directional Lighting
 - Point Lights
 - Spot Lights
+- Movable Objects
 - Resizable Window
+- Map Generation via text file
